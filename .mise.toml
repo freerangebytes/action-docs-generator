@@ -1,0 +1,7 @@
+[tools]
+actionlint = "latest"
+gomplate = "latest"
+
+[tasks.docs]
+description = "Generate README.md from action.yaml using gomplate templates"
+run = "gomplate -d action=./action.yaml -t .docs/action.md.tmpl -f .docs/README.md.tmpl -o README.md"
