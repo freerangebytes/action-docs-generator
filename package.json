@@ -1,0 +1,11 @@
+{
+    "name": "action-docs-generator",
+    "private": true,
+    "type": "module",
+    "devDependencies": {
+      "@commitlint/cli": "^20.2.0",
+      "@commitlint/config-conventional": "^20.2.0",
+      "@commitlint/format": "^20.2.0",
+      "conventional-changelog-atom": "^5.0.0"
+    }
+  }
