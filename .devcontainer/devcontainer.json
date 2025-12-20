@@ -1,0 +1,38 @@
+{
+    "name": "freerangebytes - action-docs-generator",
+    "build": {
+      "dockerfile": "Dockerfile"
+    },
+    "features": {
+      "ghcr.io/devcontainers/features/github-cli:1": {},
+      "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+      "ghcr.io/dhoeric/features/act:1": {}
+    },
+    "customizations": {
+      "vscode": {
+        "extensions": [
+          "github.vscode-github-actions",
+          "redhat.vscode-yaml",
+          "esbenp.prettier-vscode",
+          "dbaeumer.vscode-eslint",
+          "eamodio.gitlens"
+        ],
+        "settings": {
+          "yaml.schemas": {
+            "https://json.schemastore.org/github-workflow.json": ".github/workflows/*.{yml,yaml}",
+            "https://json.schemastore.org/github-action.json": "action.{yml,yaml}"
+          },
+          "editor.formatOnSave": true,
+          "files.insertFinalNewline": true,
+          "files.trimFinalNewlines": true,
+          "files.trimTrailingWhitespace": true,
+          "[yaml]": {
+            "editor.defaultFormatter": "redhat.vscode-yaml",
+            "editor.tabSize": 2
+          }
+        }
+      }
+    },
+    "remoteUser": "vscode",
+    "postCreateCommand": "mise trust .mise.toml"
+  }
