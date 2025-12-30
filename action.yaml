@@ -1,3 +1,4 @@
+---
 name: 'Action Docs Generator'
 description: 'Generates comprehensive README documentation from action.yaml metadata files'
 author: 'freerangebytes'
@@ -33,7 +34,10 @@ inputs:
     default: '[]'
 
   include-sections:
-    description: 'Comma-separated list of sections to include (all if empty). Available: title, badges, description, requirements, permissions, inputs, outputs, usage, examples, contributing, license'
+    description: >-
+      Comma-separated list of sections to include (all if empty).
+      Available: title, badges, description, requirements, permissions,
+      inputs, outputs, usage, examples, contributing, license
     required: false
     default: ''
 

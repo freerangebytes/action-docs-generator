@@ -40,7 +40,14 @@ actionlint .github/workflows/*.yaml
 
 [tasks.lint]
 description = "Run all linters"
-depends = ["lint:code", "lint:workflows"]
+depends = ["lint:code", "lint:workflows", "lint:yamllint"]
+
+[tasks."lint:yamllint"]
+description = "Lint with yamllint"
+run = """
+echo "Running yamllint..."
+yamllint .
+"""
 
 [tasks.typecheck]
 description = "Type check TypeScript source code"
