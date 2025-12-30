@@ -1,0 +1,87 @@
+name: 'Action Docs Generator'
+description: 'Generates comprehensive README documentation from action.yaml metadata files'
+author: 'freerangebytes'
+
+branding:
+  icon: 'file-text'
+  color: 'blue'
+
+inputs:
+  action-path:
+    description: 'Path to the action.yaml or action.yml file to document'
+    required: false
+    default: './action.yaml'
+
+  output-path:
+    description: 'Path where the generated README should be written'
+    required: false
+    default: './README.md'
+
+  template-path:
+    description: 'Path to a custom Handlebars template file (optional)'
+    required: false
+    default: ''
+
+  license:
+    description: 'License type (e.g., MIT, Apache-2.0) or custom license text'
+    required: false
+    default: 'MIT'
+
+  badges:
+    description: 'JSON array of badge configurations [{label, message, color, url}] or markdown badge strings'
+    required: false
+    default: '[]'
+
+  include-sections:
+    description: 'Comma-separated list of sections to include (all if empty). Available: title, badges, description, requirements, permissions, inputs, outputs, usage, examples, contributing, license'
+    required: false
+    default: ''
+
+  exclude-sections:
+    description: 'Comma-separated list of sections to exclude'
+    required: false
+    default: ''
+
+  example:
+    description: 'Custom usage example YAML to include in README'
+    required: false
+    default: ''
+
+  examples-path:
+    description: 'Path to a YAML file containing custom examples [{title, description, name?, version?, with?}]'
+    required: false
+    default: ''
+
+  contributing-url:
+    description: 'URL to CONTRIBUTING.md or contributing guidelines'
+    required: false
+    default: ''
+
+  repository-url:
+    description: 'Repository URL for generated links (auto-detected if in GitHub Actions)'
+    required: false
+    default: ''
+
+  header-level:
+    description: 'Starting header level for generated sections (1, 2, or 3)'
+    required: false
+    default: '1'
+
+  version:
+    description: 'Version tag to use in generated examples (e.g., v1, main, latest)'
+    required: false
+    default: 'main'
+
+outputs:
+  readme-path:
+    description: 'Absolute path to the generated README file'
+
+  content:
+    description: 'The generated README content as a string'
+
+  sections-generated:
+    description: 'JSON array of section names that were included in the output'
+
+runs:
+  using: 'node24'
+  main: 'action/index.js'

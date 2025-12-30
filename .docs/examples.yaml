@@ -1,0 +1,26 @@
+examples:
+  - title: Basic Usage
+    description: Generate README with default settings.
+    name: Generate README
+
+  - title: Custom Output Path
+    description: Generate README to a different location.
+    name: Generate README
+    with:
+      output-path: ./docs/ACTION_README.md
+
+  - title: With Badges
+    description: Add custom badges to the generated README.
+    name: Generate README
+    with:
+      badges: |
+        [
+          {"label": "build", "message": "passing", "color": "green"},
+          {"label": "coverage", "message": "90%", "color": "brightgreen"}
+        ]
+
+  - title: Custom Examples
+    description: Load examples from a file to include in the README.
+    name: Generate README
+    with:
+      examples-path: ./.docs/examples.yaml

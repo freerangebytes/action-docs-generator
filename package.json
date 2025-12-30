@@ -1,11 +1,59 @@
 {
-    "name": "action-docs-generator",
-    "private": true,
-    "type": "module",
-    "devDependencies": {
-      "@commitlint/cli": "^20.2.0",
-      "@commitlint/config-conventional": "^20.2.0",
-      "@commitlint/format": "^20.2.0",
-      "conventional-changelog-atom": "^5.0.0"
+  "name": "action-docs-generator",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "packageManager": "pnpm@10.11.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": ">=24",
+      "onFail": "error"
+    },
+    "packageManager": {
+      "name": "pnpm",
+      "version": ">=10",
+      "onFail": "error"
     }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/freerangebytes/action-docs-generator"
+  },
+  "keywords": [
+    "GitHub",
+    "Actions",
+    "Docs"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "package": "ncc build dist/index.js -o action"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.2.0",
+    "@commitlint/config-conventional": "^20.2.0",
+    "@commitlint/format": "^20.2.0",
+    "@eslint/js": "^9.39.2",
+    "@types/node": "^24.0.0",
+    "@vercel/ncc": "^0.38.4",
+    "conventional-changelog-atom": "^5.0.0",
+    "eslint": "^9.39.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.50.1",
+    "vitest": "^4.0.16"
+  },
+  "dependencies": {
+    "@actions/core": "^2.0.1",
+    "@actions/github": "^6.0.1",
+    "handlebars": "^4.7.8",
+    "yaml": "^2.7.0",
+    "zod": "^4.2.1"
   }
+}

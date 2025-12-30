@@ -1,0 +1,50 @@
+---
+name: Generate Artifacts
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    name: Generate and commit artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build and package action
+        run: pnpm build && pnpm package
+
+      - name: Generate README
+        uses: ./
+        with:
+          examples-path: .docs/examples.yaml
+
+      - name: Commit and push changes
+        run: |
+          git add action/ README.md
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git commit -m "chore: update generated artifacts"
+            git push
+          fi

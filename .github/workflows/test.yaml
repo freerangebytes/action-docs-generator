@@ -1,0 +1,451 @@
+---
+name: Test Action
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  unit-tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run unit tests
+        run: pnpm test
+
+  test-basic:
+    name: Test basic usage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Create output directory
+        run: mkdir -p ./test-output
+
+      - name: Generate README
+        id: generate
+        uses: ./
+        with:
+          output-path: ./test-output/basic.md
+
+      - name: Validate output exists
+        run: |
+          if [[ ! -f "./test-output/basic.md" ]]; then
+            echo "ERROR: Output file not created"
+            exit 1
+          fi
+
+      - name: Validate sections present
+        run: |
+          file="./test-output/basic.md"
+
+          # Check for expected sections
+          grep -q "^# Action Docs Generator" "$file" || { echo "ERROR: Missing title"; exit 1; }
+          grep -q "^## Requirements" "$file" || { echo "ERROR: Missing requirements"; exit 1; }
+          grep -q "^## Inputs" "$file" || { echo "ERROR: Missing inputs"; exit 1; }
+          grep -q "^## Outputs" "$file" || { echo "ERROR: Missing outputs"; exit 1; }
+          grep -q "^## Usage" "$file" || { echo "ERROR: Missing usage"; exit 1; }
+          grep -q "^## License" "$file" || { echo "ERROR: Missing license"; exit 1; }
+
+          echo "All expected sections present"
+
+      - name: Validate outputs set
+        env:
+          README_PATH: ${{ steps.generate.outputs.readme-path }}
+          SECTIONS_GENERATED: ${{ steps.generate.outputs.sections-generated }}
+        run: |
+          echo "readme-path: $README_PATH"
+          echo "sections-generated: $SECTIONS_GENERATED"
+
+          if [[ -z "$README_PATH" ]]; then
+            echo "ERROR: readme-path output not set"
+            exit 1
+          fi
+
+          if [[ -z "$SECTIONS_GENERATED" ]]; then
+            echo "ERROR: sections-generated output not set"
+            exit 1
+          fi
+
+  test-exclude-sections:
+    name: Test excluding sections
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Create output directory
+        run: mkdir -p ./test-output
+
+      - name: Generate README without examples and contributing
+        id: generate
+        uses: ./
+        with:
+          output-path: ./test-output/excluded.md
+          exclude-sections: examples,contributing,permissions
+
+      - name: Validate excluded sections are missing
+        run: |
+          file="./test-output/excluded.md"
+
+          # These sections should NOT be present
+          if grep -q "^## Examples" "$file"; then
+            echo "ERROR: Examples section should be excluded"
+            exit 1
+          fi
+
+          if grep -q "^## Contributing" "$file"; then
+            echo "ERROR: Contributing section should be excluded"
+            exit 1
+          fi
+
+          if grep -q "^## Permissions" "$file"; then
+            echo "ERROR: Permissions section should be excluded"
+            exit 1
+          fi
+
+          # These sections SHOULD be present
+          grep -q "^## Inputs" "$file" || { echo "ERROR: Missing inputs"; exit 1; }
+          grep -q "^## Usage" "$file" || { echo "ERROR: Missing usage"; exit 1; }
+
+          echo "Section exclusion working correctly"
+
+  test-include-sections:
+    name: Test including only specific sections
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Create output directory
+        run: mkdir -p ./test-output
+
+      - name: Generate README with only title, inputs, and usage
+        id: generate
+        uses: ./
+        with:
+          output-path: ./test-output/included.md
+          include-sections: title,inputs,usage
+
+      - name: Validate only included sections present
+        run: |
+          file="./test-output/included.md"
+
+          # These sections SHOULD be present
+          grep -q "^# Action Docs Generator" "$file" || { echo "ERROR: Missing title"; exit 1; }
+          grep -q "^## Inputs" "$file" || { echo "ERROR: Missing inputs"; exit 1; }
+          grep -q "^## Usage" "$file" || { echo "ERROR: Missing usage"; exit 1; }
+
+          # These sections should NOT be present
+          if grep -q "^## Outputs" "$file"; then
+            echo "ERROR: Outputs section should not be included"
+            exit 1
+          fi
+
+          if grep -q "^## License" "$file"; then
+            echo "ERROR: License section should not be included"
+            exit 1
+          fi
+
+          echo "Section inclusion working correctly"
+
+  test-custom-license:
+    name: Test custom license
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Create output directory
+        run: mkdir -p ./test-output
+
+      - name: Generate README with Apache license
+        uses: ./
+        with:
+          output-path: ./test-output/apache.md
+          license: Apache-2.0
+
+      - name: Validate license text
+        run: |
+          file="./test-output/apache.md"
+          grep -q "Apache-2.0 License" "$file" || { echo "ERROR: License not set correctly"; exit 1; }
+          echo "Custom license working correctly"
+
+  test-badges:
+    name: Test badge generation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Create output directory
+        run: mkdir -p ./test-output
+
+      - name: Generate README with badges
+        uses: ./
+        with:
+          output-path: ./test-output/badges.md
+          badges: |
+            [
+              {"label": "build", "message": "passing", "color": "green"},
+              {"label": "coverage", "message": "90%", "color": "brightgreen", "url": "https://codecov.io"}
+            ]
+
+      - name: Validate badges present
+        run: |
+          file="./test-output/badges.md"
+          grep -q "img.shields.io/badge" "$file" || { echo "ERROR: Badge not generated"; exit 1; }
+          grep -q "build" "$file" || { echo "ERROR: Build badge not found"; exit 1; }
+          grep -q "coverage" "$file" || { echo "ERROR: Coverage badge not found"; exit 1; }
+          echo "Badge generation working correctly"
+
+  test-header-level:
+    name: Test custom header level
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Create output directory
+        run: mkdir -p ./test-output
+
+      - name: Generate README with header level 2
+        uses: ./
+        with:
+          output-path: ./test-output/header-level.md
+          header-level: "2"
+
+      - name: Validate header levels
+        run: |
+          file="./test-output/header-level.md"
+
+          # Title should be H2 (##)
+          grep -q "^## Action Docs Generator" "$file" || { echo "ERROR: Title should be H2"; exit 1; }
+
+          # Subsections should be H3 (###)
+          grep -q "^### Inputs" "$file" || { echo "ERROR: Inputs should be H3"; exit 1; }
+
+          echo "Header level adjustment working correctly"
+
+  test-custom-template:
+    name: Test custom template
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Create output and fixtures directories
+        run: mkdir -p ./test-output ./test-fixtures
+
+      - name: Create custom template
+        run: |
+          cat > ./test-fixtures/custom.hbs << 'EOF'
+          # {{action.name}}
+
+          > Custom template test
+
+          {{action.description}}
+
+          ## Available Inputs
+
+          {{#each action.inputs}}
+          - **{{this.id}}**: {{this.description}}
+          {{/each}}
+          EOF
+
+      - name: Generate README with custom template
+        uses: ./
+        with:
+          output-path: ./test-output/custom-template.md
+          template-path: ./test-fixtures/custom.hbs
+
+      - name: Validate custom template used
+        run: |
+          file="./test-output/custom-template.md"
+
+          grep -q "Custom template test" "$file" || { echo "ERROR: Custom template not used"; exit 1; }
+          grep -q "Available Inputs" "$file" || { echo "ERROR: Custom section header not found"; exit 1; }
+
+          # Default sections should NOT be present
+          if grep -q "^## Requirements" "$file"; then
+            echo "ERROR: Default template sections should not appear"
+            exit 1
+          fi
+
+          echo "Custom template working correctly"
+
+  test-contributing-url:
+    name: Test contributing URL
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Create output directory
+        run: mkdir -p ./test-output
+
+      - name: Generate README with contributing URL
+        uses: ./
+        with:
+          output-path: ./test-output/contributing.md
+          contributing-url: https://github.com/freerangebytes/action-docs-generator/CONTRIBUTING.md
+
+      - name: Validate contributing link
+        run: |
+          file="./test-output/contributing.md"
+          grep -q "CONTRIBUTING.md" "$file" || { echo "ERROR: Contributing link not found"; exit 1; }
+          grep -q "freerangebytes" "$file" || { echo "ERROR: Contributing URL incorrect"; exit 1; }
+          echo "Contributing URL working correctly"
+
+  test-action-yml:
+    name: Test action.yml extension
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Create output and fixtures directories
+        run: mkdir -p ./test-output ./test-fixtures
+
+      - name: Create action.yml test file
+        run: |
+          cat > ./test-fixtures/action.yml << 'EOF'
+          name: Test Action YML
+          description: Testing .yml extension support
+          inputs:
+            test-input:
+              description: A test input
+              required: true
+          outputs:
+            test-output:
+              description: A test output
+          runs:
+            using: node24
+            main: index.js
+          EOF
+
+      - name: Generate README from action.yml
+        uses: ./
+        with:
+          action-path: ./test-fixtures/action.yml
+          output-path: ./test-output/yml-extension.md
+
+      - name: Validate output
+        run: |
+          file="./test-output/yml-extension.md"
+          grep -q "Test Action YML" "$file" || { echo "ERROR: Action name not found"; exit 1; }
+          grep -q "test-input" "$file" || { echo "ERROR: Input not found"; exit 1; }
+          echo ".yml extension support working correctly"
+
+  test-required-inputs:
+    name: Test required inputs display
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Create output and fixtures directories
+        run: mkdir -p ./test-output ./test-fixtures
+
+      - name: Create action with required inputs
+        run: |
+          cat > ./test-fixtures/required-action.yaml << 'EOF'
+          name: Action With Required Inputs
+          description: Testing required inputs display
+          inputs:
+            required-input:
+              description: This input is required
+              required: true
+            optional-input:
+              description: This input is optional
+              required: false
+              default: 'default-value'
+          runs:
+            using: node24
+            main: index.js
+          EOF
+
+      - name: Generate README
+        uses: ./
+        with:
+          action-path: ./test-fixtures/required-action.yaml
+          output-path: ./test-output/required-inputs.md
+
+      - name: Validate required inputs shown in usage
+        run: |
+          file="./test-output/required-inputs.md"
+
+          # Usage section should have with: block (not commented) because there's a required input
+          # Look for the pattern in the usage code block
+          if ! grep -A5 "^## Usage" "$file" | grep -q "with:"; then
+            echo "ERROR: with: should be present for required inputs"
+            exit 1
+          fi
+
+          # Required input should be shown
+          grep -q "required-input:" "$file" || { echo "ERROR: Required input not in usage"; exit 1; }
+
+          echo "Required inputs display working correctly"
+
+  test-custom-examples:
+    name: Test custom examples from file
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Create output and fixtures directories
+        run: mkdir -p ./test-output ./test-fixtures
+
+      - name: Create examples file
+        run: |
+          cat > ./test-fixtures/examples.yaml << 'EOF'
+          examples:
+            - title: Example One
+              description: First example description
+
+            - title: Example Two
+              description: Second example description
+              with:
+                action-path: ./custom/action.yaml
+          EOF
+
+      - name: Generate README with custom examples
+        uses: ./
+        with:
+          output-path: ./test-output/custom-examples.md
+          examples-path: ./test-fixtures/examples.yaml
+
+      - name: Validate custom examples present
+        run: |
+          file="./test-output/custom-examples.md"
+
+          # Check that custom example titles are present
+          grep -q "### Example One" "$file" || { echo "ERROR: Example One title not found"; exit 1; }
+          grep -q "### Example Two" "$file" || { echo "ERROR: Example Two title not found"; exit 1; }
+
+          # Check that descriptions are present
+          grep -q "First example description" "$file" || { echo "ERROR: Example One description not found"; exit 1; }
+          grep -q "Second example description" "$file" || { echo "ERROR: Example Two description not found"; exit 1; }
+
+          # Check that generated code is present (uses repositoryUrl from context)
+          pattern="uses: freerangebytes/action-docs-generator@"
+          grep -q "$pattern" "$file" || { echo "ERROR: Example code not found"; exit 1; }
+
+          # Check that Example Two has with block
+          grep -q "action-path:" "$file" || { echo "ERROR: Example Two with block not found"; exit 1; }
+
+          # Default "Basic Usage" example should NOT be present when custom examples are provided
+          if grep -q "### Basic Usage" "$file"; then
+            echo "ERROR: Default Basic Usage should not appear when custom examples are provided"
+            exit 1
+          fi
+
+          echo "Custom examples working correctly"

@@ -1,1 +1,40 @@
+# Dependencies
 node_modules/
+.pnpm-store/
+
+# Build output
+build/
+out/
+*.tsbuildinfo
+dist/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Test coverage
+coverage/
+
+# Test output
+test-output/
+test-fixtures/
+test-fixtures-*/
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Cache
+.cache/
+.eslintcache

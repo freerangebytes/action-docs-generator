@@ -1,7 +1,70 @@
 [tools]
 actionlint = "latest"
-gomplate = "latest"
+node = '24'
+pnpm = '10'
+
+[settings]
+experimental = true
 
 [tasks.docs]
-description = "Generate README.md from action.yaml using gomplate templates"
-run = "gomplate -d action=./action.yaml -t .docs/action.md.tmpl -f .docs/README.md.tmpl -o README.md"
+description = "Generate README.md from action.yaml"
+run = """
+pnpm build && pnpm package
+env GITHUB_REPOSITORY="freerangebytes/action-docs-generator" \
+    GITHUB_STEP_SUMMARY="/dev/null" \
+    'INPUT_EXAMPLES-PATH'="./.docs/examples.yaml" \
+    node action/index.js
+"""
+
+[tasks."lint:code"]
+description = "Lint TypeScript source code with ESLint"
+run = "pnpm lint"
+
+[tasks."lint:workflows"]
+description = "Lint GitHub Actions workflow files with actionlint and yamllint"
+depends = ["lint:workflows:yamllint", "lint:workflows:actionlint"]
+
+[tasks."lint:workflows:yamllint"]
+description = "Lint GitHub Actions workflow with yamllint"
+run = """
+echo "Running yamllint..."
+yamllint .github/workflows/*.yaml
+"""
+
+[tasks."lint:workflows:actionlint"]
+description = "Lint GitHub Actions workflow with actionlint"
+run = """
+echo "Running actionlint..."
+actionlint .github/workflows/*.yaml
+"""
+
+[tasks.lint]
+description = "Run all linters"
+depends = ["lint:code", "lint:workflows"]
+
+[tasks.typecheck]
+description = "Type check TypeScript source code"
+run = "pnpm typecheck"
+
+[tasks.check]
+description = "Run all checks (linting and type checking)"
+depends = ["lint", "typecheck"]
+
+[tasks."test:e2e"]
+description = "Run e2e test workflow locally using act"
+run = "act pull_request -W .github/workflows/test.yaml --container-architecture linux/amd64 -P ubuntu-latest=catthehacker/ubuntu:act-latest"
+
+[tasks."test:e2e:job"]
+description = "Run a specific e2e test job locally (usage: mise run test:e2e:job JOB_NAME)"
+run = "act pull_request -W .github/workflows/test.yaml --container-architecture linux/amd64 -P ubuntu-latest=catthehacker/ubuntu:act-latest -j {{arg(name='job')}}"
+
+[tasks."test:unit"]
+description = "Run unit tests"
+run = "pnpm test"
+
+[tasks.test]
+description = "Run all tests"
+depends = ["test:unit", "test:e2e"]
+
+[env]
+_.path = ['{{config_root}}/node_modules/.bin']
