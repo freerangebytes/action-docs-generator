@@ -63605,7 +63605,7 @@ function isPrivateIPv6(hostname) {
     if (!addr.includes(':'))
         return false;
     const lowerAddr = addr.toLowerCase();
-    // Exact matches
+    // ::1 is loopback, :: is unspecified address
     if (lowerAddr === '::1' || lowerAddr === '::')
         return true;
     // Prefix matches
@@ -63654,7 +63654,7 @@ function validateHttpUrl(url) {
     }
     return { valid: true, parsed };
 }
-// Schema for a URL that must be http/https and not point to private addresses
+// Validates http/https URLs that don't point to private addresses
 const httpUrlSchema = schemas_string().superRefine((url, ctx) => {
     const result = validateHttpUrl(url);
     if (!result.valid) {
@@ -63664,7 +63664,6 @@ const httpUrlSchema = schemas_string().superRefine((url, ctx) => {
         });
     }
 });
-// Schema for a single badge
 const badgeSchema = object({
     label: schemas_string().min(1).max(100),
     message: schemas_string().min(1).max(200),
@@ -63672,7 +63671,6 @@ const badgeSchema = object({
     url: httpUrlSchema.optional(),
     markdown: schemas_string().max(1000).optional(),
 });
-// Schema for an array of badges
 const badgesArraySchema = array(badgeSchema);
 //# sourceMappingURL=badge-config.js.map
 ;// CONCATENATED MODULE: ./dist/utils/zod-errors.js
@@ -63787,7 +63785,6 @@ async function readFile(path) {
 async function writeFile(path, content) {
     const resolvedPath = validatePath(path);
     const dir = (0,external_node_path_namespaceObject.dirname)(resolvedPath);
-    // Check if parent directory exists
     if (!(await fileExists(dir))) {
         throw new Error(`Cannot write to '${resolvedPath}': directory '${dir}' does not exist`);
     }
@@ -64047,7 +64044,6 @@ async function parseActionYaml(actionPath) {
     const path = await resolveActionPath(actionPath);
     const content = await readFile(path);
     debug(`Found action file at: ${path}`);
-    // Parse YAML content
     let rawYaml;
     try {
         rawYaml = (0,dist/* parse */.qg)(content);
@@ -64056,9 +64052,8 @@ async function parseActionYaml(actionPath) {
         const message = error instanceof Error ? error.message : 'Unknown error';
         throw new YamlParseError(path, message);
     }
-    // Validate the parsed YAML (assertion narrows type to RawActionYaml)
+    // Validates and narrows type to RawActionYaml
     validateActionYaml(rawYaml);
-    // Transform to ActionMetadata
     return transformToMetadata(rawYaml);
 }
 /**
@@ -64478,15 +64473,11 @@ async function renderTemplate(context, templatePath) {
  * Generate a README from action metadata and configuration
  */
 async function generateReadme(metadata, config) {
-    // Determine which sections to include
     const sectionsToInclude = determineSections(config);
     debug(`Sections to include: ${sectionsToInclude.join(', ')}`);
-    // Build the template context
     const context = buildContext(metadata, config, sectionsToInclude);
-    // Render the template
     info('Rendering README template...');
     const content = await renderTemplate(context, config.templatePath);
-    // Write the output file
     info(`Writing README to: ${config.outputPath}`);
     const outputPath = await writeFile(config.outputPath, content);
     return {
