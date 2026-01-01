@@ -2,110 +2,124 @@
 name: Versioning
 
 on:
-  push:
-    branches:
-      - main
+    push:
+        branches:
+            - main
 
-permissions:
-  contents: read
+concurrency:
+    group: versioning
+    cancel-in-progress: false
+
+permissions: {}
 
 jobs:
-  calculate-version:
-    name: Calculate Version
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.version.outputs.version }}
-      current: ${{ steps.version.outputs.current }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
+    calculate-version:
+        name: Calculate Version
+        runs-on: ubuntu-latest
+        outputs:
+            version: ${{ steps.version.outputs.version }}
+            current: ${{ steps.version.outputs.current }}
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v6
+              with:
+                  fetch-depth: 0
 
-      - name: Install svu
-        uses: freerangebytes/setup-svu@v0.2.0
+            - name: Install svu
+              uses: freerangebytes/setup-svu@v0.2.0
 
-      - name: Calculate next version
-        id: version
-        run: |
-          CURRENT=$(svu current || echo "v0.0.0")
-          NEXT=$(svu next)
+            - name: Calculate next version
+              id: version
+              run: |
+                  CURRENT=$(svu current || echo "v0.0.0")
+                  NEXT=$(svu next)
 
-          echo "Current: $CURRENT"
-          echo "Next: $NEXT"
-          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
-          echo "version=$NEXT" >> "$GITHUB_OUTPUT"
+                  echo "Current: $CURRENT"
+                  echo "Next: $NEXT"
+                  echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
+                  echo "version=$NEXT" >> "$GITHUB_OUTPUT"
 
-  tag:
-    name: Create Tag and Release
-    runs-on: ubuntu-latest
-    needs: calculate-version
-    permissions:
-      contents: write
-    outputs:
-      released: ${{ steps.release.outputs.released }}
-      version: ${{ steps.release.outputs.version }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
+    update-readme:
+        name: Update README with new version
+        runs-on: ubuntu-latest
+        needs: calculate-version
+        if: needs.calculate-version.outputs.version != needs.calculate-version.outputs.current
+        outputs:
+            sha: ${{ steps.sha.outputs.sha }}
+        steps:
+            - name: Generate GitHub App token
+              id: app-token
+              uses: actions/create-github-app-token@v2
+              with:
+                  app-id: ${{ vars.HENRIETTA_APP_ID }}
+                  private-key: ${{ secrets.HENRIETTA_PRIVATE_KEY }}
 
-      - name: Create Tag and Release
-        id: release
-        uses: freerangebytes/auto-tag-and-release@v0.2.1
-        with:
-          version: ${{ needs.calculate-version.outputs.version }}
-          previous-version: ${{ needs.calculate-version.outputs.current }}
+            - name: Checkout code
+              uses: actions/checkout@v6
+              with:
+                  fetch-depth: 1
+                  token: ${{ steps.app-token.outputs.token }}
 
-  update-readme:
-    name: Update README with new version
-    runs-on: ubuntu-latest
-    needs: tag
-    if: needs.tag.outputs.released == 'true'
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 1
+            - name: Setup Node.js
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: 24
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+            - name: Build and package action
+              run: pnpm build && pnpm package
 
-      - name: Build and package action
-        run: pnpm build && pnpm package
+            - name: Generate README with new version
+              uses: ./
+              with:
+                  examples-path: .docs/examples.yaml
+                  version: ${{ needs.calculate-version.outputs.version }}
 
-      - name: Generate README with new version
-        uses: ./
-        with:
-          examples-path: .docs/examples.yaml
-          version: ${{ needs.tag.outputs.version }}
+            - name: Commit and push README
+              uses: nick-fields/retry@v3
+              env:
+                  VERSION: ${{ needs.calculate-version.outputs.version }}
+              with:
+                  timeout_minutes: 5
+                  max_attempts: 3
+                  retry_wait_seconds: 10
+                  command: |
+                      git add README.md
+                      if git diff --staged --quiet; then
+                        echo "No README changes to commit"
+                        exit 0
+                      fi
 
-      - name: Commit and push README
-        uses: nick-fields/retry@v3
-        env:
-          VERSION: ${{ needs.tag.outputs.version }}
-        with:
-          timeout_minutes: 5
-          max_attempts: 3
-          retry_wait_seconds: 10
-          command: |
-            git add README.md
-            if git diff --staged --quiet; then
-              echo "No README changes to commit"
-              exit 0
-            fi
+                      git config user.name "henrietta-the-hen[bot]"
+                      git config user.email "${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com"
+                      git commit -m "docs: update README for $VERSION"
+                      git pull --rebase
+                      git push
 
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git diff --staged --quiet || git commit -m "docs: update README for $VERSION"
-            git pull --rebase
-            git push
+            - name: Output commit SHA
+              id: sha
+              run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+    tag:
+        name: Create Tag and Release
+        runs-on: ubuntu-latest
+        needs: [calculate-version, update-readme]
+        if: always()
+        permissions:
+            contents: write
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v6
+
+            - name: Create Tag and Release
+              id: release
+              uses: freerangebytes/auto-tag-and-release@v0.2.1
+              with:
+                  version: ${{ needs.calculate-version.outputs.version }}
+                  previous-version: ${{ needs.calculate-version.outputs.current }}
+                  ref: ${{ needs.update-readme.outputs.sha || github.sha }}
