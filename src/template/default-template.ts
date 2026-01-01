@@ -11,7 +11,7 @@ export const DEFAULT_TEMPLATE = `{{#if hasSection.title}}
 {{/hasItems}}
 {{/if}}
 {{#if hasSection.description}}
-{{action.description}}
+{{{action.description}}}
 
 {{/if}}
 {{#if hasSection.requirements}}
