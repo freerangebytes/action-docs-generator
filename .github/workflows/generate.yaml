@@ -42,6 +42,7 @@ jobs:
       - name: Generate README
         uses: ./
         with:
+          description-path: .docs/DESCRIPTION.md
           examples-path: .docs/examples.yaml
 
       - name: Commit and push changes

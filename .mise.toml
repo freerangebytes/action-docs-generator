@@ -12,6 +12,7 @@ run = """
 pnpm build && pnpm package
 env GITHUB_REPOSITORY="freerangebytes/action-docs-generator" \
     GITHUB_STEP_SUMMARY="/dev/null" \
+    'INPUT_DESCRIPTION-PATH'="./.docs/DESCRIPTION.md" \
     'INPUT_EXAMPLES-PATH'="./.docs/examples.yaml" \
     node action/index.js
 """
