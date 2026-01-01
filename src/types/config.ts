@@ -59,4 +59,6 @@ export interface GeneratorConfig {
   version: string;
   /** Starting header level (1-3) */
   headerLevel: 1 | 2 | 3;
+  /** Custom description override */
+  description?: string;
 }

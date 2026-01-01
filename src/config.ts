@@ -7,6 +7,7 @@ import { debug } from './utils/logger.js';
 import { detectVersion } from './utils/version.js';
 import { validateBadges } from './utils/badges.js';
 import { loadExamples } from './utils/examples.js';
+import { readFile } from './utils/file-system.js';
 
 /**
  * Parse a comma-separated list of section names
@@ -70,6 +71,23 @@ function parseBadges(input: string): Badge[] {
 }
 
 /**
+ * Load custom description from direct input or file path
+ */
+async function loadDescription(
+  descriptionInput: string | undefined,
+  descriptionPath: string | undefined
+): Promise<string | undefined> {
+  if (descriptionPath) {
+    if (descriptionInput) {
+      core.warning('Both description and description-path provided; using description-path');
+    }
+    return (await readFile(descriptionPath)).trim();
+  }
+
+  return descriptionInput?.trim() || undefined;
+}
+
+/**
  * Get repository URL from GitHub context or environment
  */
 function getRepositoryUrl(): string {
@@ -109,6 +127,11 @@ export async function loadConfig(): Promise<GeneratorConfig> {
 
   const examples = examplesPath ? await loadExamples(examplesPath) : [];
 
+  const description = await loadDescription(
+    core.getInput('description') || undefined,
+    core.getInput('description-path') || undefined
+  );
+
   let version: string;
   if (versionInput && versionInput !== 'auto') {
     version = versionInput;
@@ -139,5 +162,6 @@ export async function loadConfig(): Promise<GeneratorConfig> {
     repositoryUrl,
     version,
     headerLevel,
+    description,
   };
 }

@@ -66,8 +66,13 @@ function buildContext(
     ALL_SECTIONS.map((section) => [section, sections.includes(section)])
   ) as Record<SectionName, boolean>;
 
+  // Apply description override if provided
+  const effectiveMetadata = config.description
+    ? { ...metadata, description: config.description }
+    : metadata;
+
   return {
-    action: metadata,
+    action: effectiveMetadata,
     config: {
       license: config.license,
       badges: config.badges,

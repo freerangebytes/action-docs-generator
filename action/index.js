@@ -63830,6 +63830,7 @@ async function loadExamples(examplesPath) {
 
 
 
+
 /**
  * Parse a comma-separated list of section names
  */
@@ -63881,6 +63882,18 @@ function parseBadges(input) {
     return validateBadges(parsed);
 }
 /**
+ * Load custom description from direct input or file path
+ */
+async function loadDescription(descriptionInput, descriptionPath) {
+    if (descriptionPath) {
+        if (descriptionInput) {
+            lib_core.warning('Both description and description-path provided; using description-path');
+        }
+        return (await readFile(descriptionPath)).trim();
+    }
+    return descriptionInput?.trim() || undefined;
+}
+/**
  * Get repository URL from GitHub context or environment
  */
 function getRepositoryUrl() {
@@ -63912,6 +63925,7 @@ async function loadConfig() {
     const headerLevel = parseHeaderLevel(lib_core.getInput('header-level') || '1');
     const repositoryUrl = repositoryUrlInput || getRepositoryUrl();
     const examples = examplesPath ? await loadExamples(examplesPath) : [];
+    const description = await loadDescription(lib_core.getInput('description') || undefined, lib_core.getInput('description-path') || undefined);
     let version;
     if (versionInput && versionInput !== 'auto') {
         version = versionInput;
@@ -63941,6 +63955,7 @@ async function loadConfig() {
         repositoryUrl,
         version,
         headerLevel,
+        description,
     };
 }
 //# sourceMappingURL=config.js.map
@@ -64511,8 +64526,12 @@ function determineSections(config) {
 function buildContext(metadata, config, sections) {
     // Build hasSection map for easy template conditionals
     const hasSection = Object.fromEntries(ALL_SECTIONS.map((section) => [section, sections.includes(section)]));
+    // Apply description override if provided
+    const effectiveMetadata = config.description
+        ? { ...metadata, description: config.description }
+        : metadata;
     return {
-        action: metadata,
+        action: effectiveMetadata,
         config: {
             license: config.license,
             badges: config.badges,

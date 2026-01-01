@@ -18,6 +18,16 @@ inputs:
     required: false
     default: './README.md'
 
+  description:
+    description: 'Custom description to use instead of the one from action.yaml'
+    required: false
+    default: ''
+
+  description-path:
+    description: 'Path to a markdown file containing the description to use instead of the one from action.yaml'
+    required: false
+    default: ''
+
   template-path:
     description: 'Path to a custom Handlebars template file (optional)'
     required: false

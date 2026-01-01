@@ -48,7 +48,7 @@ jobs:
       - name: Validate output exists
         run: |
           if [[ ! -f "./test-output/basic.md" ]]; then
-            echo "ERROR: Output file not created"
+            echo "::error::Output file not created"
             exit 1
           fi
 
@@ -57,12 +57,35 @@ jobs:
           file="./test-output/basic.md"
 
           # Check for expected sections
-          grep -q "^# Action Docs Generator" "$file" || { echo "ERROR: Missing title"; exit 1; }
-          grep -q "^## Requirements" "$file" || { echo "ERROR: Missing requirements"; exit 1; }
-          grep -q "^## Inputs" "$file" || { echo "ERROR: Missing inputs"; exit 1; }
-          grep -q "^## Outputs" "$file" || { echo "ERROR: Missing outputs"; exit 1; }
-          grep -q "^## Usage" "$file" || { echo "ERROR: Missing usage"; exit 1; }
-          grep -q "^## License" "$file" || { echo "ERROR: Missing license"; exit 1; }
+          if ! grep -q "^# Action Docs Generator" "$file"; then
+            echo "::error::Missing title"
+            exit 1
+          fi
+
+          if ! grep -q "^## Requirements" "$file"; then
+            echo "::error::Missing requirements"
+            exit 1
+          fi
+
+          if ! grep -q "^## Inputs" "$file"; then
+            echo "::error::Missing inputs"
+            exit 1
+          fi
+
+          if ! grep -q "^## Outputs" "$file"; then
+            echo "::error::Missing outputs"
+            exit 1
+          fi
+
+          if ! grep -q "^## Usage" "$file"; then
+            echo "::error::Missing usage"
+            exit 1
+          fi
+
+          if ! grep -q "^## License" "$file"; then
+            echo "::error::Missing license"
+            exit 1
+          fi
 
           echo "All expected sections present"
 
@@ -75,12 +98,12 @@ jobs:
           echo "sections-generated: $SECTIONS_GENERATED"
 
           if [[ -z "$README_PATH" ]]; then
-            echo "ERROR: readme-path output not set"
+            echo "::error::readme-path output not set"
             exit 1
           fi
 
           if [[ -z "$SECTIONS_GENERATED" ]]; then
-            echo "ERROR: sections-generated output not set"
+            echo "::error::sections-generated output not set"
             exit 1
           fi
 
@@ -106,23 +129,30 @@ jobs:
 
           # These sections should NOT be present
           if grep -q "^## Examples" "$file"; then
-            echo "ERROR: Examples section should be excluded"
+            echo "::error::Examples section should be excluded"
             exit 1
           fi
 
           if grep -q "^## Contributing" "$file"; then
-            echo "ERROR: Contributing section should be excluded"
+            echo "::error::Contributing section should be excluded"
             exit 1
           fi
 
           if grep -q "^## Permissions" "$file"; then
-            echo "ERROR: Permissions section should be excluded"
+            echo "::error::Permissions section should be excluded"
             exit 1
           fi
 
           # These sections SHOULD be present
-          grep -q "^## Inputs" "$file" || { echo "ERROR: Missing inputs"; exit 1; }
-          grep -q "^## Usage" "$file" || { echo "ERROR: Missing usage"; exit 1; }
+          if ! grep -q "^## Inputs" "$file"; then
+            echo "::error::Missing inputs"
+            exit 1
+          fi
+
+          if ! grep -q "^## Usage" "$file"; then
+            echo "::error::Missing usage"
+            exit 1
+          fi
 
           echo "Section exclusion working correctly"
 
@@ -147,18 +177,29 @@ jobs:
           file="./test-output/included.md"
 
           # These sections SHOULD be present
-          grep -q "^# Action Docs Generator" "$file" || { echo "ERROR: Missing title"; exit 1; }
-          grep -q "^## Inputs" "$file" || { echo "ERROR: Missing inputs"; exit 1; }
-          grep -q "^## Usage" "$file" || { echo "ERROR: Missing usage"; exit 1; }
+          if ! grep -q "^# Action Docs Generator" "$file"; then
+            echo "::error::Missing title"
+            exit 1
+          fi
+
+          if ! grep -q "^## Inputs" "$file"; then
+            echo "::error::Missing inputs"
+            exit 1
+          fi
+
+          if ! grep -q "^## Usage" "$file"; then
+            echo "::error::Missing usage"
+            exit 1
+          fi
 
           # These sections should NOT be present
           if grep -q "^## Outputs" "$file"; then
-            echo "ERROR: Outputs section should not be included"
+            echo "::error::Outputs section should not be included"
             exit 1
           fi
 
           if grep -q "^## License" "$file"; then
-            echo "ERROR: License section should not be included"
+            echo "::error::License section should not be included"
             exit 1
           fi
 
@@ -182,7 +223,12 @@ jobs:
       - name: Validate license text
         run: |
           file="./test-output/apache.md"
-          grep -q "Apache-2.0 License" "$file" || { echo "ERROR: License not set correctly"; exit 1; }
+
+          if ! grep -q "Apache-2.0 License" "$file"; then
+            echo "::error::License not set correctly"
+            exit 1
+          fi
+
           echo "Custom license working correctly"
 
   test-badges:
@@ -207,9 +253,22 @@ jobs:
       - name: Validate badges present
         run: |
           file="./test-output/badges.md"
-          grep -q "img.shields.io/badge" "$file" || { echo "ERROR: Badge not generated"; exit 1; }
-          grep -q "build" "$file" || { echo "ERROR: Build badge not found"; exit 1; }
-          grep -q "coverage" "$file" || { echo "ERROR: Coverage badge not found"; exit 1; }
+
+          if ! grep -q "img.shields.io/badge" "$file"; then
+            echo "::error::Badge not generated"
+            exit 1
+          fi
+
+          if ! grep -q "build" "$file"; then
+            echo "::error::Build badge not found"
+            exit 1
+          fi
+
+          if ! grep -q "coverage" "$file"; then
+            echo "::error::Coverage badge not found"
+            exit 1
+          fi
+
           echo "Badge generation working correctly"
 
   test-header-level:
@@ -232,10 +291,16 @@ jobs:
           file="./test-output/header-level.md"
 
           # Title should be H2 (##)
-          grep -q "^## Action Docs Generator" "$file" || { echo "ERROR: Title should be H2"; exit 1; }
+          if ! grep -q "^## Action Docs Generator" "$file"; then
+            echo "::error::Title should be H2"
+            exit 1
+          fi
 
           # Subsections should be H3 (###)
-          grep -q "^### Inputs" "$file" || { echo "ERROR: Inputs should be H3"; exit 1; }
+          if ! grep -q "^### Inputs" "$file"; then
+            echo "::error::Inputs should be H3"
+            exit 1
+          fi
 
           echo "Header level adjustment working correctly"
 
@@ -274,12 +339,19 @@ jobs:
         run: |
           file="./test-output/custom-template.md"
 
-          grep -q "Custom template test" "$file" || { echo "ERROR: Custom template not used"; exit 1; }
-          grep -q "Available Inputs" "$file" || { echo "ERROR: Custom section header not found"; exit 1; }
+          if ! grep -q "Custom template test" "$file"; then
+            echo "::error::Custom template not used"
+            exit 1
+          fi
+
+          if ! grep -q "Available Inputs" "$file"; then
+            echo "::error::Custom section header not found"
+            exit 1
+          fi
 
           # Default sections should NOT be present
           if grep -q "^## Requirements" "$file"; then
-            echo "ERROR: Default template sections should not appear"
+            echo "::error::Default template sections should not appear"
             exit 1
           fi
 
@@ -303,8 +375,17 @@ jobs:
       - name: Validate contributing link
         run: |
           file="./test-output/contributing.md"
-          grep -q "CONTRIBUTING.md" "$file" || { echo "ERROR: Contributing link not found"; exit 1; }
-          grep -q "freerangebytes" "$file" || { echo "ERROR: Contributing URL incorrect"; exit 1; }
+
+          if ! grep -q "CONTRIBUTING.md" "$file"; then
+            echo "::error::Contributing link not found"
+            exit 1
+          fi
+
+          if ! grep -q "freerangebytes" "$file"; then
+            echo "::error::Contributing URL incorrect"
+            exit 1
+          fi
+
           echo "Contributing URL working correctly"
 
   test-action-yml:
@@ -342,8 +423,17 @@ jobs:
       - name: Validate output
         run: |
           file="./test-output/yml-extension.md"
-          grep -q "Test Action YML" "$file" || { echo "ERROR: Action name not found"; exit 1; }
-          grep -q "test-input" "$file" || { echo "ERROR: Input not found"; exit 1; }
+
+          if ! grep -q "Test Action YML" "$file"; then
+            echo "::error::Action name not found"
+            exit 1
+          fi
+
+          if ! grep -q "test-input" "$file"; then
+            echo "::error::Input not found"
+            exit 1
+          fi
+
           echo ".yml extension support working correctly"
 
   test-required-inputs:
@@ -386,12 +476,15 @@ jobs:
           # Usage section should have with: block (not commented) because there's a required input
           # Look for the pattern in the usage code block
           if ! grep -A5 "^## Usage" "$file" | grep -q "with:"; then
-            echo "ERROR: with: should be present for required inputs"
+            echo "::error::with: should be present for required inputs"
             exit 1
           fi
 
           # Required input should be shown
-          grep -q "required-input:" "$file" || { echo "ERROR: Required input not in usage"; exit 1; }
+          if ! grep -q "required-input:" "$file"; then
+            echo "::error::Required input not in usage"
+            exit 1
+          fi
 
           echo "Required inputs display working correctly"
 
@@ -428,24 +521,177 @@ jobs:
           file="./test-output/custom-examples.md"
 
           # Check that custom example titles are present
-          grep -q "### Example One" "$file" || { echo "ERROR: Example One title not found"; exit 1; }
-          grep -q "### Example Two" "$file" || { echo "ERROR: Example Two title not found"; exit 1; }
+          if ! grep -q "### Example One" "$file"; then
+            echo "::error::Example One title not found"
+            exit 1
+          fi
+
+          if ! grep -q "### Example Two" "$file"; then
+            echo "::error::Example Two title not found"
+            exit 1
+          fi
 
           # Check that descriptions are present
-          grep -q "First example description" "$file" || { echo "ERROR: Example One description not found"; exit 1; }
-          grep -q "Second example description" "$file" || { echo "ERROR: Example Two description not found"; exit 1; }
+          if ! grep -q "First example description" "$file"; then
+            echo "::error::Example One description not found"
+            exit 1
+          fi
+
+          if ! grep -q "Second example description" "$file"; then
+            echo "::error::Example Two description not found"
+            exit 1
+          fi
 
           # Check that generated code is present (uses repositoryUrl from context)
           pattern="uses: freerangebytes/action-docs-generator@"
-          grep -q "$pattern" "$file" || { echo "ERROR: Example code not found"; exit 1; }
+          if ! grep -q "$pattern" "$file"; then
+            echo "::error::Example code not found"
+            exit 1
+          fi
 
           # Check that Example Two has with block
-          grep -q "action-path:" "$file" || { echo "ERROR: Example Two with block not found"; exit 1; }
+          if ! grep -q "action-path:" "$file"; then
+            echo "::error::Example Two with block not found"
+            exit 1
+          fi
 
           # Default "Basic Usage" example should NOT be present when custom examples are provided
           if grep -q "### Basic Usage" "$file"; then
-            echo "ERROR: Default Basic Usage should not appear when custom examples are provided"
+            echo "::error::Default Basic Usage should not appear when custom examples are provided"
             exit 1
           fi
 
           echo "Custom examples working correctly"
+
+  test-description-override:
+    name: Test description override
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Create output directory
+        run: mkdir -p ./test-output
+
+      - name: Generate README with custom description
+        uses: ./
+        with:
+          output-path: ./test-output/description-override.md
+          description: |
+            This is a custom description that overrides the one from action.yaml.
+
+            It supports **markdown** formatting and multiple paragraphs.
+
+      - name: Validate custom description used
+        run: |
+          file="./test-output/description-override.md"
+
+          # Custom description should be present
+          if ! grep -q "This is a custom description" "$file"; then
+            echo "::error::Custom description not found"
+            exit 1
+          fi
+
+          if ! grep -q "overrides the one from action.yaml" "$file"; then
+            echo "::error::Custom description text incomplete"
+            exit 1
+          fi
+
+          # Original description should NOT be present
+          if grep -q "Generates comprehensive README documentation from action.yaml metadata files" "$file"; then
+            echo "::error::Original description should be overridden"
+            exit 1
+          fi
+
+          echo "Description override working correctly"
+
+  test-description-path:
+    name: Test description from file
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Create output and fixtures directories
+        run: mkdir -p ./test-output ./test-fixtures
+
+      - name: Create description markdown file
+        run: |
+          cat > ./test-fixtures/DESCRIPTION.md << 'EOF'
+          This description is loaded from a markdown file.
+
+          ## Features
+
+          - Feature one
+          - Feature two
+          - Feature three
+
+          This allows for more complex descriptions with full markdown support.
+          EOF
+
+      - name: Generate README with description from file
+        uses: ./
+        with:
+          output-path: ./test-output/description-path.md
+          description-path: ./test-fixtures/DESCRIPTION.md
+
+      - name: Validate description from file used
+        run: |
+          file="./test-output/description-path.md"
+
+          # Description from file should be present
+          if ! grep -q "This description is loaded from a markdown file" "$file"; then
+            echo "::error::Description from file not found"
+            exit 1
+          fi
+
+          if ! grep -q "Feature one" "$file"; then
+            echo "::error::Feature list not found"
+            exit 1
+          fi
+
+          # Original description should NOT be present
+          if grep -q "Generates comprehensive README documentation from action.yaml metadata files" "$file"; then
+            echo "::error::Original description should be overridden"
+            exit 1
+          fi
+
+          echo "Description path working correctly"
+
+  test-description-path-priority:
+    name: Test description-path takes priority over description
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Create output and fixtures directories
+        run: mkdir -p ./test-output ./test-fixtures
+
+      - name: Create description markdown file
+        run: |
+          cat > ./test-fixtures/priority-description.md << 'EOF'
+          This is the description from the file and should take priority.
+          EOF
+
+      - name: Generate README with both description and description-path
+        uses: ./
+        with:
+          output-path: ./test-output/description-priority.md
+          description: This is the direct description and should be ignored.
+          description-path: ./test-fixtures/priority-description.md
+
+      - name: Validate description-path takes priority
+        run: |
+          file="./test-output/description-priority.md"
+
+          # Description from file should be present (takes priority)
+          if ! grep -q "description from the file and should take priority" "$file"; then
+            echo "::error::Description from file not found"
+            exit 1
+          fi
+
+          # Direct description should NOT be present
+          if grep -q "This is the direct description and should be ignored" "$file"; then
+            echo "::error::Direct description should be ignored when description-path is provided"
+            exit 1
+          fi
+
+          echo "Description path priority working correctly"
