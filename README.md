@@ -121,4 +121,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-*Generated with [Action Docs Generator](https://github.com/freerangebytes/action-docs-generator) on 2025-12-31*
+*Generated with [Action Docs Generator](https://github.com/freerangebytes/action-docs-generator) on 2026-01-01*
