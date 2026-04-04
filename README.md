@@ -1,18 +1,6 @@
 # Action Docs Generator
 
-Automatically generate comprehensive, well-structured README documentation from your GitHub Action's `action.yaml` metadata file.
-
-## Features
-
-- **Zero Configuration** - Works out of the box with sensible defaults
-- **Complete Documentation** - Generates title, description, inputs table, outputs table, usage examples, and more
-- **Customizable Sections** - Include or exclude specific sections as needed
-- **Custom Templates** - Use your own Handlebars template for full control over output
-- **Badge Support** - Add shields.io badges with simple JSON configuration
-- **Multiple Examples** - Define custom usage examples via YAML configuration
-- **Flexible Description** - Override the description with inline text or a markdown file
-
-Keep your action's documentation in sync with its metadata automatically.
+Generates comprehensive README documentation from action.yaml metadata files
 
 ## Requirements
 
@@ -59,7 +47,7 @@ permissions:
 
 ```yaml
 - name: Action Docs Generator
-  uses: freerangebytes/action-docs-generator@main
+  uses: freerangebytes/action-docs-generator@v0.1.2
   # with:
   #   action-path: './action.yaml'
   #   output-path: './README.md'
@@ -86,7 +74,7 @@ Generate README with default settings.
 
 ```yaml
 - name: Generate README
-  uses: freerangebytes/action-docs-generator@main
+  uses: freerangebytes/action-docs-generator@v0.1.2
 ```
 
 ### Custom Output Path
@@ -95,7 +83,7 @@ Generate README to a different location.
 
 ```yaml
 - name: Generate README
-  uses: freerangebytes/action-docs-generator@main
+  uses: freerangebytes/action-docs-generator@v0.1.2
   with:
     output-path: ./docs/ACTION_README.md
 ```
@@ -106,7 +94,7 @@ Add custom badges to the generated README.
 
 ```yaml
 - name: Generate README
-  uses: freerangebytes/action-docs-generator@main
+  uses: freerangebytes/action-docs-generator@v0.1.2
   with:
     badges: |
       [
@@ -122,7 +110,7 @@ Load examples from a file to include in the README.
 
 ```yaml
 - name: Generate README
-  uses: freerangebytes/action-docs-generator@main
+  uses: freerangebytes/action-docs-generator@v0.1.2
   with:
     examples-path: ./.docs/examples.yaml
 ```
