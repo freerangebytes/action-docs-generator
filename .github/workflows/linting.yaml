@@ -17,7 +17,7 @@ jobs:
           ref: ${{ github.head_ref }}
           fetch-depth: 1
       - name: Setup Actionlint
-        uses: freerangebytes/setup-actionlint@v0.1.1
+        uses: freerangebytes/setup-actionlint@v0.1.2
       - name: Run Actionlint
         run: actionlint
 
