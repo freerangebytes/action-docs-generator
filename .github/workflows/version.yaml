@@ -27,7 +27,7 @@ jobs:
                   fetch-depth: 0
 
             - name: Install svu
-              uses: freerangebytes/setup-svu@v0.2.0
+              uses: freerangebytes/setup-svu@v0.2.1
 
             - name: Calculate next version
               id: version
