@@ -29,8 +29,8 @@
     "Docs"
   ],
   "scripts": {
-    "build": "tsc",
-    "typecheck": "tsc --noEmit",
+    "build": "rm -rf dist && tsc",
+    "typecheck": "tsc -p tsconfig.check.json",
     "lint": "eslint src/",
     "test": "vitest run",
     "test:watch": "vitest",

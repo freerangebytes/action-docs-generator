@@ -11,6 +11,7 @@
     "customizations": {
       "vscode": {
         "extensions": [
+          "Anthropic.claude-code",
           "github.vscode-github-actions",
           "redhat.vscode-yaml",
           "esbenp.prettier-vscode",

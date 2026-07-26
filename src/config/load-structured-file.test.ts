@@ -1,12 +1,19 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { writeFile, mkdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
-import { loadExamples } from './examples.js';
-import { ConfigError } from './errors.js';
+import { loadStructuredFile } from './resolve.js';
+import type { Example } from '../schemas/example-config.js';
+import { sectionValueSchemas } from '../schemas/input-schema.js';
+import { ConfigError } from '../utils/errors.js';
 
 const TEST_DIR = join(process.cwd(), 'test-fixtures-examples');
 
-describe('loadExamples', () => {
+// The schema resolveConfig loads an examples file with. Asserting against a
+// stand-in meant these tests could pass while the real one behaved differently.
+const loadExamples = (path: string): Promise<Example[]> =>
+  loadStructuredFile(path, 'examples', sectionValueSchemas.examples);
+
+describe('loadStructuredFile (examples)', () => {
   beforeEach(async () => {
     await mkdir(TEST_DIR, { recursive: true });
   });
@@ -53,10 +60,12 @@ examples:
     await expect(loadExamples('test-fixtures-examples/no-key.yaml')).rejects.toThrow(ConfigError);
   });
 
-  it('throws ConfigError for empty examples array', async () => {
+  // No lower bound, matching `badges`: an empty list is a valid way to say the
+  // section has nothing in it, and the template renders nothing for it.
+  it('accepts an empty examples array', async () => {
     await writeFile(join(TEST_DIR, 'empty.yaml'), 'examples: []');
 
-    await expect(loadExamples('test-fixtures-examples/empty.yaml')).rejects.toThrow(ConfigError);
+    await expect(loadExamples('test-fixtures-examples/empty.yaml')).resolves.toEqual([]);
   });
 
   it('throws ConfigError for example with short title', async () => {

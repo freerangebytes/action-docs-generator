@@ -14,15 +14,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7.0.0
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
         with:
           node-version: 24
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v5
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320  # v5.0.0
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -30,11 +32,60 @@ jobs:
       - name: Run unit tests
         run: pnpm test
 
+  build:
+    name: Build action
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+        with:
+          node-version: 24
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320  # v5.0.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build and package action
+        run: pnpm build && pnpm package
+
+      # The bundle is committed and is what consumers execute, so it must match
+      # the source it claims to be built from.
+      - name: Verify committed bundle is up to date
+        run: |
+          if ! git diff --exit-code --stat -- action/; then
+            echo "::error::action/ is out of date. Run 'pnpm build && pnpm package' and commit the result."
+            exit 1
+          fi
+
+      - name: Upload built action
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: built-action
+          path: action/
+          retention-days: 1
+          if-no-files-found: error
+
   test-basic:
     name: Test basic usage
     runs-on: ubuntu-latest
+    needs: build
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download built action
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5.0.0
+        with:
+          name: built-action
+          path: action/
 
       - name: Create output directory
         run: mkdir -p ./test-output
@@ -110,8 +161,17 @@ jobs:
   test-exclude-sections:
     name: Test excluding sections
     runs-on: ubuntu-latest
+    needs: build
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download built action
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5.0.0
+        with:
+          name: built-action
+          path: action/
 
       - name: Create output directory
         run: mkdir -p ./test-output
@@ -159,8 +219,17 @@ jobs:
   test-include-sections:
     name: Test including only specific sections
     runs-on: ubuntu-latest
+    needs: build
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download built action
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5.0.0
+        with:
+          name: built-action
+          path: action/
 
       - name: Create output directory
         run: mkdir -p ./test-output
@@ -208,8 +277,17 @@ jobs:
   test-custom-license:
     name: Test custom license
     runs-on: ubuntu-latest
+    needs: build
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download built action
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5.0.0
+        with:
+          name: built-action
+          path: action/
 
       - name: Create output directory
         run: mkdir -p ./test-output
@@ -234,8 +312,17 @@ jobs:
   test-badges:
     name: Test badge generation
     runs-on: ubuntu-latest
+    needs: build
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download built action
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5.0.0
+        with:
+          name: built-action
+          path: action/
 
       - name: Create output directory
         run: mkdir -p ./test-output
@@ -274,8 +361,17 @@ jobs:
   test-header-level:
     name: Test custom header level
     runs-on: ubuntu-latest
+    needs: build
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download built action
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5.0.0
+        with:
+          name: built-action
+          path: action/
 
       - name: Create output directory
         run: mkdir -p ./test-output
@@ -307,8 +403,17 @@ jobs:
   test-custom-template:
     name: Test custom template
     runs-on: ubuntu-latest
+    needs: build
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download built action
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5.0.0
+        with:
+          name: built-action
+          path: action/
 
       - name: Create output and fixtures directories
         run: mkdir -p ./test-output ./test-fixtures
@@ -316,15 +421,15 @@ jobs:
       - name: Create custom template
         run: |
           cat > ./test-fixtures/custom.hbs << 'EOF'
-          # {{action.name}}
+          # {{name}}
 
           > Custom template test
 
-          {{action.description}}
+          {{description}}
 
           ## Available Inputs
 
-          {{#each action.inputs}}
+          {{#each inputs}}
           - **{{this.id}}**: {{this.description}}
           {{/each}}
           EOF
@@ -355,44 +460,197 @@ jobs:
             exit 1
           fi
 
+          # The custom template renders real context values, not just literals
+          if ! grep -q "^# Action Docs Generator" "$file"; then
+            echo "::error::Action name not rendered from template context"
+            exit 1
+          fi
+
+          if ! grep -q "action-path" "$file"; then
+            echo "::error::Inputs not rendered from template context"
+            exit 1
+          fi
+
           echo "Custom template working correctly"
 
-  test-contributing-url:
-    name: Test contributing URL
+  test-contributing:
+    name: Test contributing section
     runs-on: ubuntu-latest
+    needs: build
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
 
-      - name: Create output directory
-        run: mkdir -p ./test-output
+      - name: Download built action
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5.0.0
+        with:
+          name: built-action
+          path: action/
 
-      - name: Generate README with contributing URL
+      - name: Create output and fixtures directories
+        run: mkdir -p ./test-output ./test-fixtures
+
+      - name: Create contributing file
+        run: |
+          cat > ./test-fixtures/CONTRIBUTING.md << 'EOF'
+          Contributions from the community are very welcome.
+
+          Please open an issue before submitting a large change.
+          EOF
+
+      - name: Generate README with contributing from file
         uses: ./
         with:
-          output-path: ./test-output/contributing.md
-          contributing-url: https://github.com/freerangebytes/action-docs-generator/CONTRIBUTING.md
+          output-path: ./test-output/contributing-path.md
+          contributing-path: ./test-fixtures/CONTRIBUTING.md
 
-      - name: Validate contributing link
+      - name: Generate README with inline contributing
+        uses: ./
+        with:
+          output-path: ./test-output/contributing-inline.md
+          contributing: Fork it, branch it, ship it.
+
+      - name: Validate contributing content
         run: |
-          file="./test-output/contributing.md"
-
-          if ! grep -q "CONTRIBUTING.md" "$file"; then
-            echo "::error::Contributing link not found"
+          if ! grep -q "Contributions from the community are very welcome" \
+            ./test-output/contributing-path.md; then
+            echo "::error::Contributing content from file not inlined"
             exit 1
           fi
 
-          if ! grep -q "freerangebytes" "$file"; then
-            echo "::error::Contributing URL incorrect"
+          if ! grep -q "open an issue before submitting a large change" \
+            ./test-output/contributing-path.md; then
+            echo "::error::Contributing content truncated"
             exit 1
           fi
 
-          echo "Contributing URL working correctly"
+          if ! grep -q "Fork it, branch it, ship it." ./test-output/contributing-inline.md; then
+            echo "::error::Inline contributing content not used"
+            exit 1
+          fi
+
+          echo "Contributing section working correctly"
+
+  test-conflicting-section-inputs:
+    name: Test a section rejects both inline content and a path
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download built action
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5.0.0
+        with:
+          name: built-action
+          path: action/
+
+      - name: Create output and fixtures directories
+        run: mkdir -p ./test-output ./test-fixtures
+
+      - name: Create description markdown file
+        run: echo "Description from the file." > ./test-fixtures/conflict.md
+
+      - name: Generate README with both description and description-path
+        id: generate
+        continue-on-error: true
+        uses: ./
+        with:
+          output-path: ./test-output/conflict.md
+          description: This is the direct description.
+          description-path: ./test-fixtures/conflict.md
+
+      - name: Validate the action failed
+        run: |
+          if [[ "${{ steps.generate.outcome }}" != "failure" ]]; then
+            echo "::error::Supplying both description and description-path should fail"
+            exit 1
+          fi
+
+          if [[ -f "./test-output/conflict.md" ]]; then
+            echo "::error::No README should be written when inputs conflict"
+            exit 1
+          fi
+
+          echo "Conflicting section inputs rejected correctly"
+
+  test-structured-section-paths:
+    name: Test structured sections from files
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download built action
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5.0.0
+        with:
+          name: built-action
+          path: action/
+
+      - name: Create output and fixtures directories
+        run: mkdir -p ./test-output ./test-fixtures
+
+      - name: Create badges and permissions files
+        run: |
+          cat > ./test-fixtures/badges.yaml << 'EOF'
+          badges:
+            - label: build
+              message: passing
+              color: green
+          EOF
+
+          cat > ./test-fixtures/permissions.yaml << 'EOF'
+          permissions:
+            contents: read
+            pull-requests: write
+          EOF
+
+      - name: Generate README from structured section files
+        uses: ./
+        with:
+          output-path: ./test-output/structured.md
+          badges-path: ./test-fixtures/badges.yaml
+          permissions-path: ./test-fixtures/permissions.yaml
+
+      - name: Validate structured sections rendered
+        run: |
+          file="./test-output/structured.md"
+
+          if ! grep -q "img.shields.io/badge" "$file"; then
+            echo "::error::Badge from badges-path not generated"
+            exit 1
+          fi
+
+          if ! grep -q "contents: read" "$file"; then
+            echo "::error::Permissions from permissions-path not rendered"
+            exit 1
+          fi
+
+          if ! grep -q "pull-requests: write" "$file"; then
+            echo "::error::Second permission not rendered"
+            exit 1
+          fi
+
+          echo "Structured section paths working correctly"
 
   test-action-yml:
     name: Test action.yml extension
     runs-on: ubuntu-latest
+    needs: build
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download built action
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5.0.0
+        with:
+          name: built-action
+          path: action/
 
       - name: Create output and fixtures directories
         run: mkdir -p ./test-output ./test-fixtures
@@ -439,8 +697,17 @@ jobs:
   test-required-inputs:
     name: Test required inputs display
     runs-on: ubuntu-latest
+    needs: build
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download built action
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5.0.0
+        with:
+          name: built-action
+          path: action/
 
       - name: Create output and fixtures directories
         run: mkdir -p ./test-output ./test-fixtures
@@ -491,8 +758,17 @@ jobs:
   test-custom-examples:
     name: Test custom examples from file
     runs-on: ubuntu-latest
+    needs: build
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download built action
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5.0.0
+        with:
+          name: built-action
+          path: action/
 
       - name: Create output and fixtures directories
         run: mkdir -p ./test-output ./test-fixtures
@@ -566,8 +842,17 @@ jobs:
   test-description-override:
     name: Test description override
     runs-on: ubuntu-latest
+    needs: build
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download built action
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5.0.0
+        with:
+          name: built-action
+          path: action/
 
       - name: Create output directory
         run: mkdir -p ./test-output
@@ -607,8 +892,17 @@ jobs:
   test-description-path:
     name: Test description from file
     runs-on: ubuntu-latest
+    needs: build
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download built action
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5.0.0
+        with:
+          name: built-action
+          path: action/
 
       - name: Create output and fixtures directories
         run: mkdir -p ./test-output ./test-fixtures
@@ -656,42 +950,44 @@ jobs:
 
           echo "Description path working correctly"
 
-  test-description-path-priority:
-    name: Test description-path takes priority over description
+  test-usage-section:
+    name: Test generated usage snippet
     runs-on: ubuntu-latest
+    needs: build
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
 
-      - name: Create output and fixtures directories
-        run: mkdir -p ./test-output ./test-fixtures
+      - name: Download built action
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5.0.0
+        with:
+          name: built-action
+          path: action/
 
-      - name: Create description markdown file
-        run: |
-          cat > ./test-fixtures/priority-description.md << 'EOF'
-          This is the description from the file and should take priority.
-          EOF
+      - name: Create output directory
+        run: mkdir -p ./test-output
 
-      - name: Generate README with both description and description-path
+      - name: Generate README with a pinned version
         uses: ./
         with:
-          output-path: ./test-output/description-priority.md
-          description: This is the direct description and should be ignored.
-          description-path: ./test-fixtures/priority-description.md
+          output-path: ./test-output/usage.md
+          version: v1
 
-      - name: Validate description-path takes priority
+      - name: Validate usage snippet
         run: |
-          file="./test-output/description-priority.md"
+          file="./test-output/usage.md"
 
-          # Description from file should be present (takes priority)
-          if ! grep -q "description from the file and should take priority" "$file"; then
-            echo "::error::Description from file not found"
+          if ! grep -q "uses: freerangebytes/action-docs-generator@v1" "$file"; then
+            echo "::error::Usage snippet missing or version not applied"
             exit 1
           fi
 
-          # Direct description should NOT be present
-          if grep -q "This is the direct description and should be ignored" "$file"; then
-            echo "::error::Direct description should be ignored when description-path is provided"
+          # The unawaited-promise regression this guards against rendered
+          # '@[object Promise]' into every generated snippet.
+          if grep -q "object Promise" "$file"; then
+            echo "::error::Unresolved promise rendered into output"
             exit 1
           fi
 
-          echo "Description path priority working correctly"
+          echo "Usage section working correctly"

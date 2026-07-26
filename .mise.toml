@@ -1,10 +1,19 @@
 [tools]
-actionlint = "latest"
+# Linters are pinned so they behave the same on every machine and in CI.
+actionlint = '1.7'
+yamllint = '1.37'
 node = '24'
 pnpm = '10'
 
 [settings]
 experimental = true
+
+# yamllint installs through mise's pipx backend. mise applies a release-age
+# cooldown by passing pip `--uploaded-prior-to`, but formats the timestamp with
+# nanosecond precision, which pip refuses to parse, so the install always fails.
+# The cooldown buys nothing as the version above is pinned, so it can
+# never resolve to a freshly published release. Everything else keeps it.
+minimum_release_age_excludes = ['yamllint']
 
 [tasks.docs]
 description = "Generate README.md from action.yaml"
@@ -14,6 +23,12 @@ env GITHUB_REPOSITORY="freerangebytes/action-docs-generator" \
     GITHUB_STEP_SUMMARY="/dev/null" \
     'INPUT_DESCRIPTION-PATH'="./.docs/DESCRIPTION.md" \
     'INPUT_EXAMPLES-PATH'="./.docs/examples.yaml" \
+    'INPUT_ACTION-PATH'="action.yaml" \
+    'INPUT_OUTPUT-PATH'="README.md" \
+    'INPUT_LICENSE'="MIT" \
+    'INPUT_LICENSE-PATH'="LICENSE" \
+    'INPUT_PERMISSIONS'='{"contents": "read"}' \
+    'INPUT_HEADER-LEVEL'="1" \
     node action/index.js
 """
 
@@ -22,18 +37,7 @@ description = "Lint TypeScript source code with ESLint"
 run = "pnpm lint"
 
 [tasks."lint:workflows"]
-description = "Lint GitHub Actions workflow files with actionlint and yamllint"
-depends = ["lint:workflows:yamllint", "lint:workflows:actionlint"]
-
-[tasks."lint:workflows:yamllint"]
-description = "Lint GitHub Actions workflow with yamllint"
-run = """
-echo "Running yamllint..."
-yamllint .github/workflows/*.yaml
-"""
-
-[tasks."lint:workflows:actionlint"]
-description = "Lint GitHub Actions workflow with actionlint"
+description = "Lint GitHub Actions workflow files with actionlint"
 run = """
 echo "Running actionlint..."
 actionlint .github/workflows/*.yaml
