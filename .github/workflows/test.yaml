@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7.0.0
+        uses: actions/checkout@v7.0.1
 
       - name: Setup Node.js
         uses: actions/setup-node@v7.0.0
@@ -34,7 +34,7 @@ jobs:
     name: Test basic usage
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
 
       - name: Create output directory
         run: mkdir -p ./test-output
@@ -111,7 +111,7 @@ jobs:
     name: Test excluding sections
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
 
       - name: Create output directory
         run: mkdir -p ./test-output
@@ -160,7 +160,7 @@ jobs:
     name: Test including only specific sections
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
 
       - name: Create output directory
         run: mkdir -p ./test-output
@@ -209,7 +209,7 @@ jobs:
     name: Test custom license
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
 
       - name: Create output directory
         run: mkdir -p ./test-output
@@ -235,7 +235,7 @@ jobs:
     name: Test badge generation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
 
       - name: Create output directory
         run: mkdir -p ./test-output
@@ -275,7 +275,7 @@ jobs:
     name: Test custom header level
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
 
       - name: Create output directory
         run: mkdir -p ./test-output
@@ -308,7 +308,7 @@ jobs:
     name: Test custom template
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
 
       - name: Create output and fixtures directories
         run: mkdir -p ./test-output ./test-fixtures
@@ -361,7 +361,7 @@ jobs:
     name: Test contributing URL
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
 
       - name: Create output directory
         run: mkdir -p ./test-output
@@ -392,7 +392,7 @@ jobs:
     name: Test action.yml extension
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
 
       - name: Create output and fixtures directories
         run: mkdir -p ./test-output ./test-fixtures
@@ -440,7 +440,7 @@ jobs:
     name: Test required inputs display
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
 
       - name: Create output and fixtures directories
         run: mkdir -p ./test-output ./test-fixtures
@@ -492,7 +492,7 @@ jobs:
     name: Test custom examples from file
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
 
       - name: Create output and fixtures directories
         run: mkdir -p ./test-output ./test-fixtures
@@ -567,7 +567,7 @@ jobs:
     name: Test description override
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
 
       - name: Create output directory
         run: mkdir -p ./test-output
@@ -608,7 +608,7 @@ jobs:
     name: Test description from file
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
 
       - name: Create output and fixtures directories
         run: mkdir -p ./test-output ./test-fixtures
@@ -660,7 +660,7 @@ jobs:
     name: Test description-path takes priority over description
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
 
       - name: Create output and fixtures directories
         run: mkdir -p ./test-output ./test-fixtures
