@@ -21,6 +21,13 @@ describe('escapeTableCell', () => {
     expect(escapeTableCell('a | b')).toBe('a \\| b');
   });
 
+  // Escaping only the pipe would turn `\|` into `\\|` — an escaped backslash
+  // followed by a live cell separator.
+  it('escapes backslashes so an escaped pipe cannot be smuggled in', () => {
+    expect(escapeTableCell('a \\| b')).toBe('a \\\\\\| b');
+    expect(escapeTableCell('C:\\path')).toBe('C:\\\\path');
+  });
+
   it('flattens newlines, including CRLF', () => {
     expect(escapeTableCell('a\nb')).toBe('a b');
     expect(escapeTableCell('a\r\nb')).toBe('a b');
@@ -55,6 +62,20 @@ describe('formatDefault', () => {
 
   it('escapes pipes and flattens newlines', () => {
     expect(formatDefault('a | b\nc')).toBe('`a \\| b c`');
+  });
+
+  // The row is split into cells before the code span is parsed, so a backslash
+  // in front of a pipe escapes the backslash and leaves the pipe live.
+  it('doubles the backslashes in front of a pipe', () => {
+    expect(formatDefault('a \\| b')).toBe('`a \\\\\\| b`');
+    expect(formatDefault('a \\\\| b')).toBe('`a \\\\\\\\\\| b`');
+  });
+
+  // Inside a code span a backslash is literal, so doubling every one of them
+  // would render `C:\path` as `C:\\path`.
+  it('leaves backslashes that are not in front of a pipe alone', () => {
+    expect(formatDefault('C:\\path')).toBe('`C:\\path`');
+    expect(formatDefault('\\d+')).toBe('`\\d+`');
   });
 
   // Regression: the fence was always `` when the value held any backtick, so a

@@ -23,6 +23,7 @@ export function urlEncode(value: unknown): string {
 export function escapeTableCell(value: unknown): string {
   if (typeof value !== 'string') return '';
   return value
+    .replace(/\\/g, '\\\\')
     .replace(/\|/g, '\\|')
     .replace(/\r?\n/g, ' ')
     .replace(/</g, '&lt;')
@@ -45,7 +46,7 @@ export function formatDefault(value: unknown): string {
     return '-';
   }
 
-  const escaped = value.replace(/\|/g, '\\|').replace(/\r?\n/g, ' ');
+  const escaped = value.replace(/(\\*)\|/g, '$1$1\\|').replace(/\r?\n/g, ' ');
   const longestRun = Math.max(0, ...(escaped.match(/`+/g) ?? []).map((run) => run.length));
   const fence = '`'.repeat(longestRun + 1);
   const pad = longestRun > 0 ? ' ' : '';
