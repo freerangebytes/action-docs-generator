@@ -5,7 +5,11 @@
     },
     "features": {
       "ghcr.io/devcontainers/features/github-cli:1": {},
-      "ghcr.io/devcontainers/features/docker-in-docker:4": {},
+      // "moby": false installs Docker CE from download.docker.com instead of
+      // Microsoft's Moby packages.
+      "ghcr.io/devcontainers/features/docker-in-docker:4": {
+        "moby": false
+      },
       "ghcr.io/dhoeric/features/act:1": {},
       // This supplies the python3 and pip that needs.
       // The base image ships python3 without ensurepip. The tools this feature
