@@ -94,7 +94,7 @@ permissions:
 ## Usage
 
 ```yaml
-- uses: freerangebytes/action-docs-generator@main
+- uses: freerangebytes/action-docs-generator@v0.1.2
   with:
     action-path: ./action.yaml
     output-path: ./README.md
@@ -112,7 +112,7 @@ permissions:
 Generate README with default settings.
 ```yaml
 - name: Generate README
-  uses: freerangebytes/action-docs-generator@main
+  uses: freerangebytes/action-docs-generator@v0.1.2
 ```
 
 ### Custom Output Path
@@ -120,7 +120,7 @@ Generate README with default settings.
 Generate README to a different location.
 ```yaml
 - name: Generate README
-  uses: freerangebytes/action-docs-generator@main
+  uses: freerangebytes/action-docs-generator@v0.1.2
   with:
     output-path: ./docs/ACTION_README.md
 ```
@@ -130,7 +130,7 @@ Generate README to a different location.
 Add custom badges to the generated README.
 ```yaml
 - name: Generate README
-  uses: freerangebytes/action-docs-generator@main
+  uses: freerangebytes/action-docs-generator@v0.1.2
   with:
     badges: |-
       [
@@ -144,7 +144,7 @@ Add custom badges to the generated README.
 Load examples from a file to include in the README.
 ```yaml
 - name: Generate README
-  uses: freerangebytes/action-docs-generator@main
+  uses: freerangebytes/action-docs-generator@v0.1.2
   with:
     examples-path: ./.docs/examples.yaml
 ```
