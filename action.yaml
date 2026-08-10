@@ -1,47 +1,104 @@
 ---
-name: 'Action Docs Generator'
-description: 'Generates comprehensive README documentation from action.yaml metadata files'
-author: 'freerangebytes'
+name: "Action Docs Generator"
+description: "Generates comprehensive README documentation from action.yaml metadata files"
+author: "freerangebytes"
 
 branding:
-  icon: 'file-text'
-  color: 'blue'
+  icon: "file-text"
+  color: "blue"
 
 inputs:
   action-path:
-    description: 'Path to the action.yaml or action.yml file to document'
+    description: "Path to the action.yaml or action.yml file to document"
     required: false
-    default: './action.yaml'
+    default: "./action.yaml"
 
   output-path:
-    description: 'Path where the generated README should be written'
+    description: "Path where the generated README should be written"
     required: false
-    default: './README.md'
+    default: "./README.md"
 
   description:
-    description: 'Custom description to use instead of the one from action.yaml'
+    description: "Custom description to use instead of the one from action.yaml"
     required: false
-    default: ''
+    default: ""
 
   description-path:
-    description: 'Path to a markdown file containing the description to use instead of the one from action.yaml'
+    description: "Path to a markdown file containing the description. Mutually exclusive with description"
     required: false
-    default: ''
+    default: ""
+
+  contributing:
+    description: "Contributing guidance to include in the README"
+    required: false
+    default: ""
+
+  contributing-path:
+    description: "Path to a markdown file containing the contributing guidance. Mutually exclusive with contributing"
+    required: false
+    default: ""
+
+  template:
+    description: "Custom Handlebars template to render the README with"
+    required: false
+    default: ""
 
   template-path:
-    description: 'Path to a custom Handlebars template file (optional)'
+    description: "Path to a custom Handlebars template file. Mutually exclusive with template"
     required: false
-    default: ''
-
-  license:
-    description: 'License type (e.g., MIT, Apache-2.0) or custom license text'
-    required: false
-    default: 'MIT'
+    default: ""
 
   badges:
-    description: 'JSON array of badge configurations [{label, message, color, url}] or markdown badge strings'
+    description: >-
+      JSON array of badges. Each entry is either {label, message, color, url?}
+      or a ready-made markdown string
     required: false
-    default: '[]'
+    default: ""
+
+  badges-path:
+    description: "Path to a YAML or JSON file containing badge configurations. Mutually exclusive with badges"
+    required: false
+    default: ""
+
+  permissions:
+    description: 'JSON object mapping permission names to levels, e.g. {"contents": "read"}'
+    required: false
+    default: ""
+
+  permissions-path:
+    description: "Path to a YAML or JSON file containing the permissions map. Mutually exclusive with permissions"
+    required: false
+    default: ""
+
+  examples:
+    description: "JSON array of examples [{title, description, name?, version?, with?}]"
+    required: false
+    default: ""
+
+  examples-path:
+    description: "Path to a YAML or JSON file containing custom examples. Mutually exclusive with examples"
+    required: false
+    default: ""
+
+  example:
+    description: "Shorthand for a single hand-written usage example. Mutually exclusive with examples"
+    required: false
+    default: ""
+
+  license:
+    description: "License identifier (e.g., MIT, Apache-2.0)"
+    required: false
+    default: "MIT"
+
+  license-path:
+    description: "Path to the license file, used as the link target in the License section"
+    required: false
+    default: ""
+
+  load-license-file-content:
+    description: "Whether to inline the contents of license-path instead of linking to it"
+    required: false
+    default: "false"
 
   include-sections:
     description: >-
@@ -49,53 +106,50 @@ inputs:
       Available: title, badges, description, requirements, permissions,
       inputs, outputs, usage, examples, contributing, license
     required: false
-    default: ''
+    default: ""
 
   exclude-sections:
-    description: 'Comma-separated list of sections to exclude'
+    description: "Comma-separated list of sections to exclude"
     required: false
-    default: ''
-
-  example:
-    description: 'Custom usage example YAML to include in README'
-    required: false
-    default: ''
-
-  examples-path:
-    description: 'Path to a YAML file containing custom examples [{title, description, name?, version?, with?}]'
-    required: false
-    default: ''
-
-  contributing-url:
-    description: 'URL to CONTRIBUTING.md or contributing guidelines'
-    required: false
-    default: ''
+    default: ""
 
   repository-url:
-    description: 'Repository URL for generated links (auto-detected if in GitHub Actions)'
+    description: "Repository URL for generated links (auto-detected if in GitHub Actions)"
     required: false
-    default: ''
+    default: ""
 
   header-level:
-    description: 'Starting header level for generated sections (1, 2, or 3)'
+    description: "Starting header level for generated sections (1, 2, or 3)"
     required: false
-    default: '1'
+    default: "1"
+
+  include-generated-date:
+    description: "Whether or not to include the date the README was generated."
+    required: false
+    default: "false"
 
   version:
-    description: 'Version tag to use in generated examples (e.g., v1, main, latest)'
+    description: "Version tag to use in generated examples (auto-detected from tags if empty)"
     required: false
-    default: 'main'
+    default: ""
+
+  github-token:
+    description: "Token used to read repository tags when auto-detecting the version"
+    required: false
+    default: ${{ github.token }}
 
 outputs:
   readme-path:
-    description: 'Absolute path to the generated README file'
+    description: "Absolute path to the generated README file"
 
   content:
-    description: 'The generated README content as a string'
+    description: >-
+      The generated README content as a string. Note this includes any inlined
+      file contents, such as the license when load-license-file-content is set
 
   sections-generated:
-    description: 'JSON array of section names that were included in the output'
+    description: "JSON array of section names that were included in the output"
 
 runs:
-  using: 'node24'
-  main: 'action/index.js'
+  using: "node24"
+  main: "action/index.js"

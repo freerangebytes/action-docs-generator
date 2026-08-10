@@ -8,7 +8,9 @@ export default tseslint.config(
   {
     languageOptions: {
       parserOptions: {
-        projectService: true,
+        // The check config, not tsconfig.json: the build config excludes test
+        // files so they are not emitted into dist/, but they still need linting.
+        project: ['./tsconfig.check.json'],
         tsconfigRootDir: import.meta.dirname,
       },
     },

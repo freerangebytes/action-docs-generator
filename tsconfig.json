@@ -17,8 +17,12 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noUncheckedIndexedAccess": true,
-    "noEmitOnError": true
+    "noEmitOnError": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "action"]
+  // Tests are excluded from the build so they are not emitted into dist/.
+  // tsconfig.check.json type-checks them.
+  "exclude": ["node_modules", "dist", "action", "src/**/*.test.ts"]
 }

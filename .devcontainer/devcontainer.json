@@ -5,12 +5,25 @@
     },
     "features": {
       "ghcr.io/devcontainers/features/github-cli:1": {},
-      "ghcr.io/devcontainers/features/docker-in-docker:4": {},
-      "ghcr.io/dhoeric/features/act:1": {}
+      // "moby": false installs Docker CE from download.docker.com instead of
+      // Microsoft's Moby packages.
+      "ghcr.io/devcontainers/features/docker-in-docker:4": {
+        "moby": false
+      },
+      "ghcr.io/dhoeric/features/act:1": {},
+      // This supplies the python3 and pip that needs.
+      // The base image ships python3 without ensurepip. The tools this feature
+      // can install are all Python linters this project does not use, so
+      // "installTools" stays off and post-create.sh adds pipx on its own.
+      "ghcr.io/devcontainers/features/python:1": {
+        "version": "os-provided",
+        "installTools": false
+      }
     },
     "customizations": {
       "vscode": {
         "extensions": [
+          "Anthropic.claude-code",
           "github.vscode-github-actions",
           "redhat.vscode-yaml",
           "esbenp.prettier-vscode",

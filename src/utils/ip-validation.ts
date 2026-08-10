@@ -1,12 +1,23 @@
 // Hostnames that should never appear in URLs.
-const BLOCKED_HOSTS = new Set(['localhost', 'localhost.localdomain', '0.0.0.0']);
+const BLOCKED_HOSTS = new Set([
+  'localhost',
+  'localhost.localdomain',
+  '0.0.0.0',
+  // Cloud instance-metadata endpoints, which resolve to link-local addresses
+  // but are commonly reached by name.
+  'metadata.google.internal',
+  'metadata.goog',
+]);
 
 // Private IPv4 ranges. Format: [firstOctet, secondOctetMin?, secondOctetMax?]
 const PRIVATE_IPV4_RANGES: [number, number?, number?][] = [
+  [0],             // 0.0.0.0/8 - "This network"
   [127],           // 127.0.0.0/8 - Loopback
   [10],            // 10.0.0.0/8 - Private
+  [100, 64, 127],  // 100.64.0.0/10 - Carrier-grade NAT
   [172, 16, 31],   // 172.16.0.0/12 - Private
   [192, 168, 168], // 192.168.0.0/16 - Private
+  [198, 18, 19],   // 198.18.0.0/15 - Benchmarking
   [169, 254, 254], // 169.254.0.0/16 - Link-local
 ];
 
@@ -83,7 +94,12 @@ function isPrivateIPv6(hostname: string): boolean {
 }
 
 /**
- * Check if hostname is a private/internal address
+ * Check if hostname is a private/internal address.
+ *
+ * Expects an already-normalised hostname — pass `new URL(...).hostname`, never a
+ * raw authority string. The URL parser canonicalises the alternative IPv4
+ * encodings (`2130706433`, `0177.0.0.1`, `127.1`) to dotted quads, and this
+ * function does not recognise them on its own.
  */
 export function isPrivateAddress(hostname: string): boolean {
   return BLOCKED_HOSTS.has(hostname) || isPrivateIPv4(hostname) || isPrivateIPv6(hostname);

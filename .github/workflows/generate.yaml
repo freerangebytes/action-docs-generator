@@ -6,32 +6,32 @@ on:
 
 permissions: {}
 
+concurrency:
+  group: generate-${{ github.head_ref }}
+  cancel-in-progress: true
+
 jobs:
-  generate:
-    name: Generate and commit artifacts
+  # Runs untrusted pull-request code (dependency install scripts, the build, and
+  # the action itself). It must never hold credentials, so the App token is
+  # minted only in the `commit` job below, which does not execute any of it.
+  build:
+    name: Build artifacts
     runs-on: ubuntu-latest
     steps:
-      - name: Generate GitHub App token
-        id: app-token
-        uses: actions/create-github-app-token@v3
-        with:
-          app-id: ${{ vars.HENRIETTA_APP_ID }}
-          private-key: ${{ secrets.HENRIETTA_PRIVATE_KEY }}
-
       - name: Checkout code
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           ref: ${{ github.head_ref }}
           fetch-depth: 1
-          token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7.0.0
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
         with:
           node-version: 24
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v5
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320  # v5.0.0
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -39,20 +39,67 @@ jobs:
       - name: Build and package action
         run: pnpm build && pnpm package
 
+      # Inputs must match the `docs` task in .mise.toml and the same step in
+      # version.yaml. Any input only one of them passes is silently dropped from
+      # the README the moment another of them regenerates it.
       - name: Generate README
         uses: ./
         with:
           description-path: .docs/DESCRIPTION.md
           examples-path: .docs/examples.yaml
+          license-path: LICENSE
+          permissions: '{"contents": "read"}'
+
+      - name: Upload generated artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: generated-artifacts
+          path: |
+            action/
+            README.md
+          retention-days: 1
+          if-no-files-found: error
+
+  # `pull_request` withholds secrets from fork runs, so the App token cannot be
+  # minted there and pushing to a fork's branch would fail regardless. Skipping
+  # keeps fork pull requests green — the build job above still validates them.
+  commit:
+    name: Commit artifacts
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1  # v3.2.0
+        with:
+          app-id: ${{ vars.HENRIETTA_APP_ID }}
+          private-key: ${{ secrets.HENRIETTA_PRIVATE_KEY }}
+          permission-contents: write
+
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 1
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Download generated artifacts
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5.0.0
+        with:
+          name: generated-artifacts
 
       - name: Commit and push changes
+        env:
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
         run: |
           git add action/ README.md
           if git diff --staged --quiet; then
             echo "No changes to commit"
-          else
-            git config user.name "henrietta-the-hen[bot]"
-            git config user.email "${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com"
-            git commit -m "chore: update generated artifacts"
-            git push
+            exit 0
           fi
+
+          git config user.name "henrietta-the-hen[bot]"
+          git config user.email "${APP_SLUG}[bot]@users.noreply.github.com"
+          git commit -m "chore: update generated artifacts"
+          git push

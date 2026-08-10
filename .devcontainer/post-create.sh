@@ -4,6 +4,11 @@ set -e
 # Trust mise configuration
 mise trust .mise.toml
 
+# yamllint is pinned in .mise.toml but only distributed through mise's pipx
+# backend, which shells out to a pipx binary. Install it before mise runs.
+# --user puts it in ~/.local/bin, already on PATH via the Dockerfile.
+pip install --user pipx
+
 # Install tools defined in .mise.toml
 mise install
 

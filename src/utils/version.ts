@@ -16,6 +16,10 @@ function parseVersion(version: string): number[] {
 /**
  * Compare two version strings (descending order)
  * Returns negative if a > b, positive if a < b, 0 if equal
+ *
+ * Numerically equal tags such as `v1` and `v1.0.0` are broken by preferring the
+ * longer, more specific tag, and finally by name. The result never depends on the order the
+ * GitHub API happened to return.
  */
 function compareVersions(a: string, b: string): number {
   const aParts = parseVersion(a);
@@ -26,7 +30,9 @@ function compareVersions(a: string, b: string): number {
     const bVal = bParts[i] || 0;
     if (aVal !== bVal) return bVal - aVal;
   }
-  return 0;
+
+  if (aParts.length !== bParts.length) return bParts.length - aParts.length;
+  return a < b ? -1 : a > b ? 1 : 0;
 }
 
 /**
@@ -61,10 +67,9 @@ async function fetchTags(token: string, owner: string, repo: string): Promise<st
  * Detect the latest version tag from GitHub repository.
  * Returns the latest semver-like tag or 'main' as fallback.
  */
-export async function detectVersion(): Promise<string> {
-  const token = process.env.GITHUB_TOKEN;
+export async function detectVersion(token?: string): Promise<string> {
   if (!token) {
-    debug('No GITHUB_TOKEN available, using default version');
+    debug('No token available, using default version');
     return 'main';
   }
 

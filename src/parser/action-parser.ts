@@ -1,17 +1,47 @@
 import { parse } from 'yaml';
-import type {
-  ActionMetadata,
-  ActionInput,
-  ActionOutput,
-  RawActionYaml,
-} from '../types/action-metadata.js';
+import {
+  actionMetadataSchema,
+  type ActionMetadata } from '../schemas/action-metadata.js';
 import { readFile, fileExists } from '../utils/file-system.js';
-import { YamlParseError, FileNotFoundError } from '../utils/errors.js';
-import { validateActionYaml } from './validators.js';
+import { YamlParseError, FileNotFoundError, ValidationError } from '../utils/errors.js';
 import { debug } from '../utils/logger.js';
+import { parseWithSchema } from '../utils/zod.js';
 
 /**
- * Resolve action file path, trying .yaml and .yml extensions
+ * Turn a raw schema failure into guidance aimed at whoever wrote the
+ * action.yaml, whose most common mistakes are a missing top-level field or an
+ * input/output declared without a description.
+ */
+function describeMetadataFailure(error: ValidationError, path: string): ValidationError {
+  const field = error.message.match(/Validation failed for '([^']+)'/)?.[1] ?? 'root';
+
+  const entryMatch = /^(inputs|outputs)\.([^.]+)\.description$/.exec(field);
+  if (entryMatch) {
+    const [, kind, name] = entryMatch;
+    return new ValidationError(
+      field,
+      `${path}: ${kind === 'inputs' ? 'input' : 'output'} '${name ?? ''}' is missing a description`
+    );
+  }
+
+  const guidance: Record<string, string> = {
+    root: 'must be a valid YAML object',
+    name: "'name' is required and must be a non-empty string",
+    description: "'description' is required and must be a non-empty string",
+    runs: "'runs' must be an object with a 'using' field",
+    'runs.using': "'runs.using' is required (for example: node24, docker, composite)",
+    inputs: "'inputs' must be a mapping of input name to definition",
+    outputs: "'outputs' must be a mapping of output name to definition",
+  };
+
+  const hint = guidance[field];
+  return hint ? new ValidationError(field, `${path}: ${hint}`) : error;
+}
+
+/**
+ * Resolve action file path, trying .yaml and .yml extensions.
+ * @throws FileNotFoundError if the action file is not found
+ * @throws PathTraversalError if the action file path escapes the base directory
  */
 async function resolveActionPath(basePath: string): Promise<string> {
   // If path already has extension, use it directly
@@ -30,7 +60,10 @@ async function resolveActionPath(basePath: string): Promise<string> {
 }
 
 /**
- * Parse an action.yaml or action.yml file and return structured metadata
+ * Parse an action.yaml or action.yml file and return structured metadata.
+ * @throws FileNotFoundError if the action file is not found
+ * @throws YamlParseError if the action file is not a valid YAML file
+ * @throws ValidationError if the action file is not a valid action.yaml file
  */
 export async function parseActionYaml(actionPath: string): Promise<ActionMetadata> {
   debug(`Parsing action file: ${actionPath}`);
@@ -48,86 +81,12 @@ export async function parseActionYaml(actionPath: string): Promise<ActionMetadat
     throw new YamlParseError(path, message);
   }
 
-  // Validates and narrows type to RawActionYaml
-  validateActionYaml(rawYaml);
-
-  return transformToMetadata(rawYaml);
-}
-
-/**
- * Transform raw YAML structure to typed ActionMetadata
- */
-function transformToMetadata(raw: RawActionYaml): ActionMetadata {
-  return {
-    name: raw.name.trim(),
-    description: raw.description.trim(),
-    inputs: transformInputs(raw.inputs),
-    outputs: transformOutputs(raw.outputs),
-    runs: {
-      using: raw.runs.using,
-    },
-  };
-}
-
-/**
- * Transform inputs from Record to Array format
- */
-function transformInputs(
-  inputs?: Record<
-    string,
-    {
-      description: string;
-      required?: boolean | string;
-      default?: string;
+  try {
+    return parseWithSchema(actionMetadataSchema, rawYaml);
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      throw describeMetadataFailure(error, path);
     }
-  >
-): ActionInput[] {
-  if (!inputs) {
-    return [];
+    throw error;
   }
-
-  return Object.entries(inputs).map(([id, input]) => ({
-    id,
-    description: input.description.trim(),
-    required: parseBoolean(input.required),
-    default: input.default,
-  }));
-}
-
-/**
- * Transform outputs from Record to Array format
- */
-function transformOutputs(
-  outputs?: Record<
-    string,
-    {
-      description: string;
-    }
-  >
-): ActionOutput[] {
-  if (!outputs) {
-    return [];
-  }
-
-  return Object.entries(outputs).map(([id, output]) => ({
-    id,
-    description: output.description.trim(),
-  }));
-}
-
-/**
- * Parse a boolean value that might be a string.
- * Follows YAML 1.2.2 Core Schema (used by GitHub Actions).
- * Only accepts: true | True | TRUE | false | False | FALSE
- */
-function parseBoolean(value: boolean | string | undefined): boolean {
-  if (typeof value === 'boolean') {
-    return value;
-  }
-  if (typeof value === 'string') {
-    const lower = value.toLowerCase();
-    if (lower === 'true') return true;
-    if (lower === 'false') return false;
-  }
-  return false;
 }

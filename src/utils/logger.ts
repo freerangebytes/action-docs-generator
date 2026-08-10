@@ -29,20 +29,6 @@ export function debug(message: string): void {
 }
 
 /**
- * Start a log group
- */
-export function startGroup(name: string): void {
-  core.startGroup(name);
-}
-
-/**
- * End a log group
- */
-export function endGroup(): void {
-  core.endGroup();
-}
-
-/**
  * Log within a group
  */
 export async function group<T>(name: string, fn: () => Promise<T>): Promise<T> {
