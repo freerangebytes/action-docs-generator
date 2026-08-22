@@ -129,12 +129,12 @@ inputs:
     default: "false"
 
   version:
-    description: "Version tag to use in generated examples (auto-detected from tags if empty)"
+    description: "Version tag to use in generated examples. Set to an empty string to auto-detect the latest tag instead"
     required: false
-    default: ""
+    default: "RELEASE-VERSION"
 
   github-token:
-    description: "Token used to read repository tags when auto-detecting the version"
+    description: "Token used to read repository tags, only when version is set to an empty string"
     required: false
     default: ${{ github.token }}
 

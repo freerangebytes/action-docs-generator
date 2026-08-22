@@ -46,119 +46,11 @@ jobs:
                   echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
                   echo "version=$NEXT" >> "$GITHUB_OUTPUT"
 
-    # Runs `pnpm install`, which executes dependency lifecycle scripts. It must
-    # never hold credentials, so the App token is minted only in the
-    # `update-readme` job below, which does not execute any of it.
-    build-readme:
-        name: Build README
-        runs-on: ubuntu-latest
-        needs: calculate-version
-        if: needs.calculate-version.outputs.version != needs.calculate-version.outputs.current
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-              with:
-                  fetch-depth: 1
-                  persist-credentials: false
-
-            - name: Setup Node.js
-              uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
-              with:
-                  node-version: 24
-
-            - name: Setup pnpm
-              uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320  # v5.0.0
-
-            - name: Install dependencies
-              run: pnpm install --frozen-lockfile
-
-            - name: Build and package action
-              run: pnpm build && pnpm package
-
-            # Inputs must match the `docs` task in .mise.toml and the same step
-            # in generate.yaml. Any input only one of them passes is silently
-            # dropped from the README the moment another regenerates it.
-            - name: Generate README with new version
-              uses: ./
-              with:
-                  description-path: .docs/DESCRIPTION.md
-                  examples-path: .docs/examples.yaml
-                  license-path: LICENSE
-                  permissions: '{"contents": "read"}'
-                  version: ${{ needs.calculate-version.outputs.version }}
-
-            - name: Upload generated README
-              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
-              with:
-                  name: generated-readme
-                  path: README.md
-                  retention-days: 1
-                  if-no-files-found: error
-
-    # Holds the App token. Only downloads the README produced above and commits
-    # it; it never installs dependencies or runs the action.
-    update-readme:
-        name: Commit README
-        runs-on: ubuntu-latest
-        needs: [calculate-version, build-readme]
-        outputs:
-            sha: ${{ steps.sha.outputs.sha }}
-        steps:
-            - name: Generate GitHub App token
-              id: app-token
-              uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1  # v3.2.0
-              with:
-                  app-id: ${{ vars.HENRIETTA_APP_ID }}
-                  private-key: ${{ secrets.HENRIETTA_PRIVATE_KEY }}
-                  permission-contents: write
-
-            - name: Checkout code
-              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-              with:
-                  fetch-depth: 1
-                  token: ${{ steps.app-token.outputs.token }}
-
-            - name: Download generated README
-              uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5.0.0
-              with:
-                  name: generated-readme
-
-            - name: Commit and push README
-              uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60  # v4.0.0
-              env:
-                  VERSION: ${{ needs.calculate-version.outputs.version }}
-                  APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
-              with:
-                  timeout_minutes: 5
-                  max_attempts: 3
-                  retry_wait_seconds: 10
-                  command: |
-                      git config user.name "henrietta-the-hen[bot]"
-                      git config user.email "${APP_SLUG}[bot]@users.noreply.github.com"
-
-                      git add README.md
-                      if git diff --staged --quiet; then
-                        echo "No README changes to commit"
-                      else
-                        git commit -m "docs: update README for $VERSION"
-                      fi
-
-                      # Always reach the push. A retry after a failed one has
-                      # nothing left to stage, so returning early on an empty
-                      # diff would report success having never pushed the
-                      # commit — and hand the tag job below a SHA that only
-                      # exists on the runner.
-                      git pull --rebase
-                      git push
-
-            - name: Output commit SHA
-              id: sha
-              run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-
     tag:
         name: Create Tag and Release
         runs-on: ubuntu-latest
-        needs: [calculate-version, update-readme]
+        needs: [calculate-version]
+        if: needs.calculate-version.outputs.version != needs.calculate-version.outputs.current
         permissions:
             contents: write
         steps:
@@ -173,4 +65,4 @@ jobs:
               with:
                   version: ${{ needs.calculate-version.outputs.version }}
                   previous-version: ${{ needs.calculate-version.outputs.current }}
-                  ref: ${{ needs.update-readme.outputs.sha }}
+                  ref: ${{ github.sha }}

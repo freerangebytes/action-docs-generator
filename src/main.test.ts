@@ -123,6 +123,21 @@ describe('loadInput', () => {
     });
   });
 
+  describe('version', () => {
+    it('passes a supplied version through unchanged', async () => {
+      setInputs({ version: 'RELEASE-VERSION' });
+
+      expect((await loadInput()).version).toBe('RELEASE-VERSION');
+    });
+
+    // Detection only runs when the version reaches resolveConfig as undefined.
+    it('clears an empty version so detection can take over', async () => {
+      setInputs({ version: '' });
+
+      expect((await loadInput()).version).toBeUndefined();
+    });
+  });
+
   describe('cross-field rules', () => {
     it('rejects inline content together with a path for the same section', async () => {
       setInputs({ description: 'Inline text', 'description-path': './d.md' });

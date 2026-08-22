@@ -991,3 +991,45 @@ jobs:
           fi
 
           echo "Usage section working correctly"
+
+      - name: Generate README with the default version
+        uses: ./
+        with:
+          output-path: ./test-output/default-version.md
+
+      - name: Validate default version placeholder
+        run: |
+          file="./test-output/default-version.md"
+
+          if ! grep -q "uses: freerangebytes/action-docs-generator@RELEASE-VERSION" "$file"; then
+            echo "::error::Default version placeholder not applied"
+            exit 1
+          fi
+
+          echo "Default version placeholder working correctly"
+
+      # An empty version opts into auto-detection, and only reaches the action
+      # as empty because a supplied value overrides the default in action.yaml.
+      - name: Generate README with auto-detection
+        uses: ./
+        with:
+          output-path: ./test-output/detected-version.md
+          version: ""
+
+      - name: Validate detected version
+        run: |
+          file="./test-output/detected-version.md"
+
+          if grep -q "uses: freerangebytes/action-docs-generator@RELEASE-VERSION" "$file"; then
+            echo "::error::Placeholder applied instead of auto-detecting the version"
+            exit 1
+          fi
+
+
+          # Detection yields the latest tag, or 'main' when there is none.
+          if ! grep -qE "uses: freerangebytes/action-docs-generator@(v[0-9]|main)" "$file"; then
+            echo "::error::Detected version is neither a tag nor the 'main' fallback"
+            exit 1
+          fi
+
+          echo "Version auto-detection working correctly"
