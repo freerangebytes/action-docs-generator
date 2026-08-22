@@ -20,7 +20,7 @@ const Configuration = {
       "https://github.com/conventional-changelog/commitlint/#what-is-commitlint",
     /*
      * Rules to override the default configuration.
-     * Standardize line length to 120 characters (matching yamllint).
+     * Standardize line length to 120 characters.
      */
     rules: {
       "body-max-line-length": [2, "always", 120],

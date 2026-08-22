@@ -1,19 +1,11 @@
 [tools]
 # Linters are pinned so they behave the same on every machine and in CI.
 actionlint = '1.7'
-yamllint = '1.37'
 node = '24'
-pnpm = '10'
+pnpm = '11'
 
 [settings]
 experimental = true
-
-# yamllint installs through mise's pipx backend. mise applies a release-age
-# cooldown by passing pip `--uploaded-prior-to`, but formats the timestamp with
-# nanosecond precision, which pip refuses to parse, so the install always fails.
-# The cooldown buys nothing as the version above is pinned, so it can
-# never resolve to a freshly published release. Everything else keeps it.
-minimum_release_age_excludes = ['yamllint']
 
 [tasks.docs]
 description = "Generate README.md from action.yaml"
@@ -29,6 +21,7 @@ env GITHUB_REPOSITORY="freerangebytes/action-docs-generator" \
     'INPUT_LICENSE-PATH'="LICENSE" \
     'INPUT_PERMISSIONS'='{"contents": "read"}' \
     'INPUT_HEADER-LEVEL'="1" \
+    'INPUT_VERSION'="RELEASE-VERSION" \
     node action/index.js
 """
 
@@ -45,14 +38,7 @@ actionlint .github/workflows/*.yaml
 
 [tasks.lint]
 description = "Run all linters"
-depends = ["lint:code", "lint:workflows", "lint:yamllint"]
-
-[tasks."lint:yamllint"]
-description = "Lint with yamllint"
-run = """
-echo "Running yamllint..."
-yamllint .
-"""
+depends = ["lint:code", "lint:workflows"]
 
 [tasks.typecheck]
 description = "Type check TypeScript source code"

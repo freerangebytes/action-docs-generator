@@ -39,9 +39,11 @@ jobs:
       - name: Build and package action
         run: pnpm build && pnpm package
 
-      # Inputs must match the `docs` task in .mise.toml and the same step in
-      # version.yaml. Any input only one of them passes is silently dropped from
-      # the README the moment another of them regenerates it.
+      # Inputs must match the `docs` task in .mise.toml. Any input only one of
+      # them passes is silently dropped from the README the moment the other
+      # regenerates it. `version` is deliberately left unset so the committed
+      # README carries the RELEASE-VERSION placeholder rather than a tag that
+      # goes stale on the next release.
       - name: Generate README
         uses: ./
         with:

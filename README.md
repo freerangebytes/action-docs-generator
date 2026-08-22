@@ -80,8 +80,8 @@ permissions:
 | `repository-url` | Repository URL for generated links (auto-detected if in GitHub Actions) | No | - |
 | `header-level` | Starting header level for generated sections (1, 2, or 3) | No | `1` |
 | `include-generated-date` | Whether or not to include the date the README was generated. | No | `false` |
-| `version` | Version tag to use in generated examples (auto-detected from tags if empty) | No | - |
-| `github-token` | Token used to read repository tags when auto-detecting the version | No | `${{ github.token }}` |
+| `version` | Version tag to use in generated examples. Set to an empty string to auto-detect the latest tag instead | No | `RELEASE-VERSION` |
+| `github-token` | Token used to read repository tags, only when version is set to an empty string | No | `${{ github.token }}` |
 
 ## Outputs
 
@@ -94,7 +94,7 @@ permissions:
 ## Usage
 
 ```yaml
-- uses: freerangebytes/action-docs-generator@v0.1.2
+- uses: freerangebytes/action-docs-generator@RELEASE-VERSION
   with:
     action-path: ./action.yaml
     output-path: ./README.md
@@ -102,6 +102,7 @@ permissions:
     load-license-file-content: false
     header-level: 1
     include-generated-date: false
+    version: RELEASE-VERSION
     github-token: ${{ github.token }}
 ```
 
@@ -112,7 +113,7 @@ permissions:
 Generate README with default settings.
 ```yaml
 - name: Generate README
-  uses: freerangebytes/action-docs-generator@v0.1.2
+  uses: freerangebytes/action-docs-generator@RELEASE-VERSION
 ```
 
 ### Custom Output Path
@@ -120,7 +121,7 @@ Generate README with default settings.
 Generate README to a different location.
 ```yaml
 - name: Generate README
-  uses: freerangebytes/action-docs-generator@v0.1.2
+  uses: freerangebytes/action-docs-generator@RELEASE-VERSION
   with:
     output-path: ./docs/ACTION_README.md
 ```
@@ -130,7 +131,7 @@ Generate README to a different location.
 Add custom badges to the generated README.
 ```yaml
 - name: Generate README
-  uses: freerangebytes/action-docs-generator@v0.1.2
+  uses: freerangebytes/action-docs-generator@RELEASE-VERSION
   with:
     badges: |-
       [
@@ -144,7 +145,7 @@ Add custom badges to the generated README.
 Load examples from a file to include in the README.
 ```yaml
 - name: Generate README
-  uses: freerangebytes/action-docs-generator@v0.1.2
+  uses: freerangebytes/action-docs-generator@RELEASE-VERSION
   with:
     examples-path: ./.docs/examples.yaml
 ```
