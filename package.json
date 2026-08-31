@@ -37,7 +37,7 @@
     "package": "ncc build dist/index.js -o action"
   },
   "devDependencies": {
-    "@commitlint/cli": "^21.1.0",
+    "@commitlint/cli": "^21.2.2",
     "@commitlint/config-conventional": "^21.2.2",
     "@commitlint/format": "^21.2.0",
     "@eslint/js": "^10.0.1",
