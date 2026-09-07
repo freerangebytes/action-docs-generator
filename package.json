@@ -15,7 +15,7 @@
     "packageManager": {
       "name": "pnpm",
       "version": "^12",
-      "onFail": "error"
+      "onFail": "download"
     }
   },
   "repository": {
