@@ -6,7 +6,7 @@
   "engines": {
     "node": ">=24"
   },
-  "packageManager": "pnpm@12.3.4",
+  "packageManager": "pnpm@11.22.0",
   "devEngines": {
     "runtime": {
       "name": "node",
@@ -15,8 +15,8 @@
     },
     "packageManager": {
       "name": "pnpm",
-      "version": "^12",
-      "onFail": "ignore"
+      "version": "^11",
+      "onFail": "error"
     }
   },
   "repository": {
