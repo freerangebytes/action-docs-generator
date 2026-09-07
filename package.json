@@ -3,7 +3,6 @@
   "private": true,
   "type": "module",
   "license": "MIT",
-  "packageManager": "pnpm@11.22.0",
   "engines": {
     "node": ">=24"
   },
@@ -15,8 +14,8 @@
     },
     "packageManager": {
       "name": "pnpm",
-      "version": ">=11",
-      "onFail": "error"
+      "version": "^12",
+      "onFail": "download"
     }
   },
   "repository": {

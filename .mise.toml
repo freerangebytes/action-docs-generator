@@ -2,7 +2,7 @@
 # Linters are pinned so they behave the same on every machine and in CI.
 actionlint = '1.7'
 node = '24'
-pnpm = '11'
+pnpm = '12'
 
 [settings]
 experimental = true
