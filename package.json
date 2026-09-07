@@ -6,6 +6,7 @@
   "engines": {
     "node": ">=24"
   },
+  "packageManager": "pnpm@12.3.4",
   "devEngines": {
     "runtime": {
       "name": "node",
