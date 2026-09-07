@@ -3,6 +3,9 @@
     "build": {
       "dockerfile": "Dockerfile"
     },
+    "containerEnv": {
+      "DISABLE_TELEMETRY": "1"
+    },
     "features": {
       "ghcr.io/devcontainers/features/github-cli:1": {},
       // "moby": false installs Docker CE from download.docker.com instead of
